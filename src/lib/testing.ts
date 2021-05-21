@@ -67,6 +67,8 @@ export interface EqualityResult {
 }
 
 export function sparqlEquals(expected: string, actual: string): EqualityResult {
+    // TODO catch parsing errors and improve message.
+
     const expectedOperations = sparqlToQuads(expected);
     const actualOperations = sparqlToQuads(actual);
     const result = (success: boolean, message: string) => ({ success, message, expected, actual });
