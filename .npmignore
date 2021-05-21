@@ -1,0 +1,9 @@
+.eslintrc.js
+.vscode
+*.test.ts
+*.tgz
+api-extractor.json
+coverage
+jest.config.js
+scripts
+tsconfig.json
