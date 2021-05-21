@@ -4,7 +4,6 @@
   "description": "My JavaScript utilities for Solid",
   "main": "dist/noeldemartin-solid-utils.cjs.js",
   "module": "dist/noeldemartin-solid-utils.esm.js",
-  "browser": "dist/noeldemartin-solid-utils.umd.js",
   "types": "dist/noeldemartin-solid-utils.d.ts",
   "scripts": {
     "build": "rm dist -rf && npm run build:js && npm run build:types",
@@ -30,6 +29,7 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
+    "@noeldemartin/utils": "0.1.0-next.b1ef40e0e83fbb134a4f4c0829b8091692df9152",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "n3": "^1.10.0"
