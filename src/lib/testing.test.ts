@@ -49,12 +49,14 @@ describe('Testing', () => {
                 @prefix foaf: <http://xmlns.com/foaf/> .
                 @prefix purl: <http://purl.org/dc/terms/> .
 
-                <#me> foaf:name "[[.*]] Doe" .
+                <#me>
+                    foaf:name "[[.*]] Doe" ;
+                    foaf:age 42 .
 
-                <#something>
+                <#something-[[.*]]>
                     purl:created "[[.*]]"^^xsd:dateTime ;
                     purl:modified "2021-01-16T[[.*]]"^^xsd:dateTime ;
-                    purl:available "2021-01-16T12:34:56"^^xsd:dateTime .
+                    purl:available "2021-01-16T12:34:56Z"^^xsd:dateTime .
             }
         `;
         const actual = `
@@ -63,12 +65,14 @@ describe('Testing', () => {
                 @prefix foaf: <http://xmlns.com/foaf/> .
                 @prefix purl: <http://purl.org/dc/terms/> .
 
-                <#me> foaf:name "John Doe" .
+                <#me>
+                    foaf:name "John Doe" ;
+                    foaf:age 42 .
 
-                <#something>
+                <#something-123456>
                     purl:created "2021-01-16T12:12:50.123Z"^^xsd:dateTime ;
                     purl:modified "2021-01-16T12:12:50.123Z"^^xsd:dateTime ;
-                    purl:available "2021-01-16T12:34:56.000"^^xsd:dateTime .
+                    purl:available "2021-01-16T12:34:56.000Z"^^xsd:dateTime .
             }
         `;
 

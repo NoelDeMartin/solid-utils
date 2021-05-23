@@ -47,7 +47,7 @@ function quadObjectEquals(expected: Quad_Object, actual: Quad_Object): boolean {
         if (!containsPatterns(expected.value))
             return expected.datatype.value === 'http://www.w3.org/2001/XMLSchema#dateTime'
                 ? new Date(expected.value).getTime() === new Date(actual.value).getTime()
-                : expected === actual;
+                : expected.value === actual.value;
     }
 
     return quadValueEquals(expected.value, actual.value);

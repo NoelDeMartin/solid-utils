@@ -1,6 +1,40 @@
-import { sparqlToQuads, turtleToQuads } from '@/lib/io';
+import { normalizeSparql, sparqlToQuads, turtleToQuads } from '@/lib/io';
 
 describe('IO', () => {
+
+    it('normalizes sparql', () => {
+        // Arrange
+        const insertTurtle = `
+            @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+            <#me>
+                foaf:name "Amy" ;
+                foaf:lastName "Doe" .
+        `;
+        const deleteTurtle = `
+            @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+            <#me> foaf:name "John Doe" .
+        `;
+        const sparql = `
+            INSERT DATA { ${insertTurtle} } ;
+            DELETE DATA { ${deleteTurtle} }
+        `;
+
+        // Act
+        const normalized = normalizeSparql(sparql);
+
+        // Assert
+        expect(normalized).toEqual([
+            'INSERT DATA {',
+            '    <#me> <http://xmlns.com/foaf/0.1/lastName> "Doe" .',
+            '    <#me> <http://xmlns.com/foaf/0.1/name> "Amy" .',
+            '} ;',
+            'DELETE DATA {',
+            '    <#me> <http://xmlns.com/foaf/0.1/name> "John Doe" .',
+            '}',
+        ].join('\n'));
+    });
 
     it('parses sparql', () => {
         // Arrange
