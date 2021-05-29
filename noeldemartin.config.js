@@ -1,4 +1,7 @@
 module.exports = {
     name: 'NoelDeMartinSolidUtils',
-    declarations: ['src/plugins/jest/types.d.ts'],
+    declarations: [
+        'src/plugins/cypress/types.d.ts',
+        'src/plugins/jest/types.d.ts',
+    ],
 };
