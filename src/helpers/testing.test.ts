@@ -1,4 +1,4 @@
-import { sparqlEquals } from '@/lib/testing';
+import { sparqlEquals } from './testing';
 
 describe('Testing', () => {
 

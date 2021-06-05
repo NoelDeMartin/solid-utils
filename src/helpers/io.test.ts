@@ -1,4 +1,4 @@
-import { normalizeSparql, sparqlToQuads, turtleToQuads } from '@/lib/io';
+import { normalizeSparql, sparqlToQuads, turtleToQuadsSync } from './io';
 
 describe('IO', () => {
 
@@ -59,11 +59,11 @@ describe('IO', () => {
         // Assert
         expect(Object.keys(quads)).toHaveLength(2);
 
-        expect(quads.insert).toEqual(turtleToQuads(insertTurtle));
-        expect(quads.delete).toEqual(turtleToQuads(deleteTurtle));
+        expect(quads.insert).toEqual(turtleToQuadsSync(insertTurtle));
+        expect(quads.delete).toEqual(turtleToQuadsSync(deleteTurtle));
     });
 
-    it('parses turtle', () => {
+    it('parses turtle synchronously', () => {
         // Arrange
         const turtle = `
             @prefix foaf: <http://xmlns.com/foaf/0.1/> .
@@ -74,7 +74,7 @@ describe('IO', () => {
         `;
 
         // Act
-        const quads = turtleToQuads(turtle);
+        const quads = turtleToQuadsSync(turtle);
 
         // Assert
         expect(quads).toHaveLength(2);

@@ -1,4 +1,4 @@
-import { sparqlEquals } from '@/lib';
+import { sparqlEquals } from '@/helpers/testing';
 
 type CustomAssertions = {
     [assertion in keyof typeof assertions]: typeof assertions[assertion];

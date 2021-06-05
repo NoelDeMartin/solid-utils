@@ -1,6 +1,7 @@
 import diff from 'jest-diff';
 
-import { normalizeSparql, sparqlEquals } from '@/lib/index';
+import { normalizeSparql } from '@/helpers/io';
+import { sparqlEquals } from '@/helpers/testing';
 
 const matchers: jest.ExpectExtendMap = {
     toEqualSparql(received, expected) {
