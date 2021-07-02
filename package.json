@@ -29,10 +29,11 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
-    "@noeldemartin/utils": "0.1.0-next.b1ef40e0e83fbb134a4f4c0829b8091692df9152",
+    "@noeldemartin/utils": "0.1.0-next.a2f6c69df6687309aeb0e2e1ee53eb15bfec29e0",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",
+    "md5": "^2.3.0",
     "n3": "^1.10.0"
   },
   "devDependencies": {
@@ -52,6 +53,7 @@
     "@types/chai": "^4.2.18",
     "@types/jest": "^26.0.23",
     "@types/jest-diff": "^24.3.0",
+    "@types/md5": "^2.3.0",
     "@types/n3": "^1.8.0",
     "babel-plugin-transform-remove-imports": "^1.5.4",
     "eslint": "^7.26.0",

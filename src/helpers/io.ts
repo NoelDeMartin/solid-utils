@@ -1,6 +1,8 @@
-import { objectWithoutEmpty } from '@noeldemartin/utils';
-import { Parser as TurtleParser, Writer as TurtleWriter } from 'n3';
+import { arr, arrayFilter, arrayReplace,objectWithoutEmpty } from '@noeldemartin/utils';
+import { BlankNode as N3BlankNode, Quad as N3Quad, Parser as TurtleParser, Writer as TurtleWriter } from 'n3';
+import md5 from 'md5';
 import type { Quad } from 'rdf-js';
+import type { Term as N3Term } from 'n3';
 
 import SolidDocument from '@/models/SolidDocument';
 
@@ -33,8 +35,61 @@ async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<string>
     }
 }
 
+function normalizeBlankNodes(quads: Quad[]): Quad[] {
+    const normalizedQuads = quads.slice(0);
+    const quadsIndexes: Record<string, Set<number>> = {};
+    const blankNodeIds = arr(quads)
+        .flatMap((quad, index) => {
+            const ids = arrayFilter([
+                quad.object.termType === 'BlankNode' ? quad.object.value : null,
+                quad.subject.termType === 'BlankNode' ? quad.subject.value : null,
+            ]);
+
+            for (const id of ids) {
+                quadsIndexes[id] = quadsIndexes[id] ?? new Set();
+                quadsIndexes[id].add(index);
+            }
+
+            return ids;
+        })
+        .filter()
+        .unique();
+
+    for (const originalId of blankNodeIds) {
+        const normalizedId = md5(
+            arr(quadsIndexes[originalId])
+                .map(index => quads[index])
+                .filter(({ subject: { termType, value } }) => termType === 'BlankNode' && value === originalId)
+                .map(
+                    ({ predicate, object }) => object.termType === 'BlankNode'
+                        ? predicate.value
+                        : predicate.value + object.value,
+                )
+                .sorted()
+                .join(),
+        );
+
+        for (const index of quadsIndexes[originalId]) {
+            const quad = normalizedQuads[index];
+            const terms: Record<string, N3Term> = { subject: quad.subject as N3Term, object: quad.object as N3Term };
+
+            for (const [termName, termValue] of Object.entries(terms)) {
+                if (termValue.termType !== 'BlankNode' || termValue.value !== originalId)
+                    continue;
+
+                terms[termName] = new N3BlankNode(normalizedId);
+            }
+
+            arrayReplace(normalizedQuads, quad, new N3Quad(terms.subject, quad.predicate as N3Term, terms.object));
+        }
+    }
+
+    return normalizedQuads;
+}
+
 export interface ParsingOptions {
     documentUrl: string;
+    normalizeBlankNodes: boolean;
 }
 
 export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<SolidDocument> {
@@ -45,7 +100,7 @@ export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<So
 }
 
 export function normalizeSparql(sparql: string): string {
-    const quads = sparqlToQuads(sparql);
+    const quads = sparqlToQuadsSync(sparql);
 
     return Object
         .entries(quads)
@@ -63,7 +118,24 @@ export function quadToTurtle(quad: Quad): string {
     return writer.quadsToString([quad]).slice(0, -1);
 }
 
-export function sparqlToQuads(sparql: string): Record<string, Quad[]> {
+export async function sparqlToQuads(
+    sparql: string,
+    options: Partial<ParsingOptions> = {},
+): Promise<Record<string, Quad[]>> {
+    const operations = sparql.matchAll(/(\w+) DATA {([^}]+)}/g);
+    const quads: Record<string, Quad[]> = {};
+
+    await Promise.all([...operations].map(async operation => {
+        const operationName = operation[1].toLowerCase();
+        const operationBody = operation[2];
+
+        quads[operationName] = await turtleToQuads(operationBody, options);
+    }));
+
+    return quads;
+}
+
+export function sparqlToQuadsSync(sparql: string, options: Partial<ParsingOptions> = {}): Record<string, Quad[]> {
     const operations = sparql.matchAll(/(\w+) DATA {([^}]+)}/g);
     const quads: Record<string, Quad[]> = {};
 
@@ -71,21 +143,10 @@ export function sparqlToQuads(sparql: string): Record<string, Quad[]> {
         const operationName = operation[1].toLowerCase();
         const operationBody = operation[2];
 
-        quads[operationName] = turtleToQuadsSync(operationBody);
+        quads[operationName] = turtleToQuadsSync(operationBody, options);
     }
 
     return quads;
-}
-
-export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOptions> = {}): Quad[] {
-    const parserOptions = objectWithoutEmpty({ baseIRI: options.documentUrl });
-    const parser = new TurtleParser(parserOptions);
-
-    try {
-        return parser.parse(turtle);
-    } catch (error) {
-        throw new MalformedSolidDocumentError(options.documentUrl ?? null, SolidDocumentFormat.Turtle, error.message);
-    }
 }
 
 export async function turtleToQuads(turtle: string, options: Partial<ParsingOptions> = {}): Promise<Quad[]> {
@@ -107,11 +168,29 @@ export async function turtleToQuads(turtle: string, options: Partial<ParsingOpti
             }
 
             if (!quad) {
-                resolve(quads);
+                options.normalizeBlankNodes
+                    ? resolve(normalizeBlankNodes(quads))
+                    : resolve(quads);
+
                 return;
             }
 
             quads.push(quad);
         });
     });
+}
+
+export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOptions> = {}): Quad[] {
+    const parserOptions = objectWithoutEmpty({ baseIRI: options.documentUrl });
+    const parser = new TurtleParser(parserOptions);
+
+    try {
+        const quads = parser.parse(turtle);
+
+        return options.normalizeBlankNodes
+            ? normalizeBlankNodes(quads)
+            : quads;
+    } catch (error) {
+        throw new MalformedSolidDocumentError(options.documentUrl ?? null, SolidDocumentFormat.Turtle, error.message);
+    }
 }

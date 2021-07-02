@@ -1,4 +1,4 @@
-import { normalizeSparql, sparqlToQuads, turtleToQuadsSync } from './io';
+import { normalizeSparql, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 describe('IO', () => {
 
@@ -54,7 +54,7 @@ describe('IO', () => {
         `;
 
         // Act
-        const quads = sparqlToQuads(sparql);
+        const quads = sparqlToQuadsSync(sparql);
 
         // Assert
         expect(Object.keys(quads)).toHaveLength(2);

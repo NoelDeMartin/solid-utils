@@ -1,4 +1,4 @@
-import { sparqlEquals } from './testing';
+import { sparqlEquals, turtleEquals } from './testing';
 
 describe('Testing', () => {
 
@@ -39,6 +39,93 @@ describe('Testing', () => {
 
         // Assert
         expect(result.success).toBe(false);
+    });
+
+    it('Compares expanded ordered lists in Turtle', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient ( "Broth" "Noodles" ) .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+            @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient _:b0 .
+
+            _:b0
+                rdf:first "Broth" ;
+                rdf:rest _:b1 .
+
+            _:b1
+                rdf:first "Noodles" ;
+                rdf:rest rdf:nil .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(true);
+    });
+
+    it('Compares different ordered lists in Turtle', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient ( "Broth" "Noodles" ) .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient ( "Noodles" "Broth" ) .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(false);
+    });
+
+    it('Compares different unordered lists in Turtle', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient "Broth", "Noodles" .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeIngredient "Noodles", "Broth" .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(true);
     });
 
     it('Compares sparql using regex patterns', () => {

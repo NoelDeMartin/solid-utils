@@ -1,7 +1,7 @@
 import { pull } from '@noeldemartin/utils';
 import type { Quad, Quad_Object } from 'rdf-js';
 
-import { quadToTurtle, sparqlToQuads } from './io';
+import { quadToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 const patternRegExps: Record<string, RegExp> = {};
 
@@ -69,8 +69,8 @@ export interface EqualityResult {
 export function sparqlEquals(expected: string, actual: string): EqualityResult {
     // TODO catch parsing errors and improve message.
 
-    const expectedOperations = sparqlToQuads(expected);
-    const actualOperations = sparqlToQuads(actual);
+    const expectedOperations = sparqlToQuadsSync(expected, { normalizeBlankNodes: true });
+    const actualOperations = sparqlToQuadsSync(actual, { normalizeBlankNodes: true });
     const result = (success: boolean, message: string) => ({ success, message, expected, actual });
 
     for (const operation of Object.keys(expectedOperations)) {
@@ -94,4 +94,22 @@ export function sparqlEquals(expected: string, actual: string): EqualityResult {
         return result(false, `Did not expect to find ${unexpectedOperation} triples.`);
 
     return result(true, 'sparql matches');
+}
+
+export function turtleEquals(expected: string, actual: string): EqualityResult {
+    // TODO catch parsing errors and improve message.
+
+    const expectedQuads = turtleToQuadsSync(expected, { normalizeBlankNodes: true });
+    const actualQuads = turtleToQuadsSync(actual, { normalizeBlankNodes: true });
+    const result = (success: boolean, message: string) => ({ success, message, expected, actual });
+
+    if (expectedQuads.length !== actualQuads.length)
+        return result(false, `Expected ${expectedQuads.length} triples, found ${actualQuads.length}.`);
+
+    for (const expectedQuad of expectedQuads) {
+        if (!actualQuads.some(actualQuad => quadEquals(expectedQuad, actualQuad)))
+            return result(false, `Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
+    }
+
+    return result(true, 'turtle matches');
 }
