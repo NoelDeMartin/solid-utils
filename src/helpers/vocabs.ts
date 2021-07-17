@@ -1,4 +1,11 @@
-const knownPrefixes: Record<string, string> = {
+export type RDFContext = Record<string, string>;
+
+export interface ExpandIRIOptions {
+    defaultPrefix: string;
+    extraContext: RDFContext;
+}
+
+const knownPrefixes: RDFContext = {
     foaf: 'http://xmlns.com/foaf/0.1/',
     pim: 'http://www.w3.org/ns/pim/space#',
     purl: 'http://purl.org/dc/terms/',
@@ -12,17 +19,23 @@ export function defineIRIPrefix(name: string, value: string): void {
     knownPrefixes[name] = value;
 }
 
-export function expandIRI(iri: string, defaultPrefix?: string): string {
+export function expandIRI(iri: string, options: Partial<ExpandIRIOptions> = {}): string {
     if (iri.startsWith('http'))
         return iri;
 
     const [prefix, name] = iri.split(':');
 
-    if (!name && !defaultPrefix)
+    if (name) {
+        const expandedPrefix = knownPrefixes[prefix] ?? options.extraContext?.[prefix] ?? null;
+
+        if (!expandedPrefix)
+            throw new Error(`Can't expand IRI with unknown prefix: '${iri}'`);
+
+        return expandedPrefix + name;
+    }
+
+    if (!options.defaultPrefix)
         throw new Error(`Can't expand IRI without a default prefix: '${iri}'`);
 
-    if (!(prefix in knownPrefixes))
-        throw new Error(`Can't expand IRI with unknown prefix: '${iri}'`);
-
-    return name ? knownPrefixes[prefix] + name : defaultPrefix + prefix;
+    return options.defaultPrefix + prefix;
 }

@@ -17,18 +17,18 @@ export default class SolidDocument {
     public statements(subject?: string, predicate?: string, object?: string): Quad[] {
         return this.quads.filter(
             statement =>
-                (!object || statement.object.value === expandIRI(object, this.url)) &&
-                (!subject || statement.subject.value === expandIRI(subject, this.url)) &&
-                (!predicate || statement.predicate.value === expandIRI(predicate, this.url)),
+                (!object || statement.object.value === expandIRI(object, { defaultPrefix: this.url })) &&
+                (!subject || statement.subject.value === expandIRI(subject, { defaultPrefix: this.url })) &&
+                (!predicate || statement.predicate.value === expandIRI(predicate, { defaultPrefix: this.url })),
         );
     }
 
     public statement(subject?: string, predicate?: string, object?: string): Quad | null {
         const statement = this.quads.find(
             statement =>
-                (!object || statement.object.value === expandIRI(object, this.url)) &&
-                (!subject || statement.subject.value === expandIRI(subject, this.url)) &&
-                (!predicate || statement.predicate.value === expandIRI(predicate, this.url)),
+                (!object || statement.object.value === expandIRI(object, { defaultPrefix: this.url })) &&
+                (!subject || statement.subject.value === expandIRI(subject, { defaultPrefix: this.url })) &&
+                (!predicate || statement.predicate.value === expandIRI(predicate, { defaultPrefix: this.url })),
         );
 
         return statement ?? null;
