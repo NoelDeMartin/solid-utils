@@ -1,4 +1,4 @@
-import { silenced, urlRoot } from '@noeldemartin/utils';
+import { objectWithoutEmpty, silenced, urlParentDirectory, urlRoot, urlRoute } from '@noeldemartin/utils';
 
 import { fetchSolidDocument } from './io';
 import type { Fetch } from './io';
@@ -6,35 +6,50 @@ import type { Fetch } from './io';
 export interface SolidUserProfile {
     webId: string;
     storageUrls: string[];
-    privateTypeIndexUrl: string;
     name?: string;
     avatarUrl?: string;
     oidcIssuerUrl?: string;
+    publicTypeIndexUrl?: string;
+    privateTypeIndexUrl?: string;
 }
 
 async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUserProfile> {
-    const store = await fetchSolidDocument(webId, fetch);
-    const storages = store.statements(webId, 'pim:storage');
-    const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
+    const documentUrl = urlRoute(webId);
+    const document = await fetchSolidDocument(documentUrl, fetch);
 
-    if (storages.length === 0)
-        throw new Error('Couldn\'t find a storage in profile');
+    if (!document.isPersonalProfile())
+        throw new Error(`Document at ${documentUrl} is not a profile.`);
 
-    if (!privateTypeIndex)
-        throw new Error('Couldn\'t find a private type index in the profile');
+    const storageUrls = document.statements(webId, 'pim:storage').map(storage => storage.object.value);
+    const publicTypeIndex = document.statement(webId, 'solid:publicTypeIndex');
+    const privateTypeIndex = document.statement(webId, 'solid:privateTypeIndex');
 
-    return {
+    let parentUrl = urlParentDirectory(documentUrl);
+    while (parentUrl && storageUrls.length === 0) {
+        const parentDocument = await silenced(fetchSolidDocument(parentUrl, fetch));
+
+        if (parentDocument?.isStorage()) {
+            storageUrls.push(parentUrl);
+
+            break;
+        }
+
+        parentUrl = urlParentDirectory(parentUrl);
+    }
+
+    return objectWithoutEmpty({
         webId,
-        storageUrls: storages.map(storage => storage.object.value),
-        privateTypeIndexUrl: privateTypeIndex.object.value,
+        storageUrls,
         name:
-            store.statement(webId, 'vcard:fn')?.object.value ??
-            store.statement(webId, 'foaf:name')?.object.value,
+            document.statement(webId, 'vcard:fn')?.object.value ??
+            document.statement(webId, 'foaf:name')?.object.value,
         avatarUrl:
-            store.statement(webId, 'vcard:hasPhoto')?.object.value ??
-            store.statement(webId, 'foaf:img')?.object.value,
-        oidcIssuerUrl: store.statement(webId, 'solid:oidcIssuer')?.object.value,
-    };
+            document.statement(webId, 'vcard:hasPhoto')?.object.value ??
+            document.statement(webId, 'foaf:img')?.object.value,
+        oidcIssuerUrl: document.statement(webId, 'solid:oidcIssuer')?.object.value,
+        publicTypeIndexUrl: publicTypeIndex?.object.value,
+        privateTypeIndexUrl: privateTypeIndex?.object.value,
+    });
 }
 
 export async function fetchLoginUserProfile(loginUrl: string, fetch?: Fetch): Promise<SolidUserProfile | null> {

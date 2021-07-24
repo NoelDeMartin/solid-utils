@@ -8,10 +8,28 @@ export default class SolidDocument {
 
     public readonly url: string;
     private quads: Quad[];
+    private headers: Headers;
 
-    public constructor(url: string, quads: Quad[]) {
+    public constructor(url: string, quads: Quad[], headers: Headers) {
         this.url = url;
         this.quads = quads;
+        this.headers = headers;
+    }
+
+    public isEmpty(): boolean {
+        return this.statements.length === 0;
+    }
+
+    public isPersonalProfile(): boolean {
+        return !!this.statement(
+            this.url,
+            expandIRI('rdfs:type'),
+            expandIRI('foaf:PersonalProfileDocument'),
+        );
+    }
+
+    public isStorage(): boolean {
+        return !!this.headers.get('Link')?.match(/<http:\/\/www\.w3\.org\/ns\/pim\/space#Storage>;[^,]+rel="type"/);
     }
 
     public statements(subject?: string, predicate?: string, object?: string): Quad[] {

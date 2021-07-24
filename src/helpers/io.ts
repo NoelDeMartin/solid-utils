@@ -6,16 +6,17 @@ import type { Term as N3Term } from 'n3';
 
 import SolidDocument from '@/models/SolidDocument';
 
-import UnauthorizedError from '@/errors/UnauthorizedError';
-import NetworkRequestError from '@/errors/NetworkRequestError';
 import MalformedSolidDocumentError, { SolidDocumentFormat } from '@/errors/MalformedSolidDocumentError';
+import NetworkRequestError from '@/errors/NetworkRequestError';
+import NotFoundError from '@/errors/NotFoundError';
+import UnauthorizedError from '@/errors/UnauthorizedError';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<any>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
-async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<string> {
+async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<{ body: string; headers: Headers }> {
     const options = {
         headers: { Accept: 'text/turtle' },
     };
@@ -23,10 +24,18 @@ async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<string>
     try {
         const response = await fetch(url, options);
 
+        if (response.status === 404)
+            throw new NotFoundError(url);
+
         if ([401, 403].includes(response.status))
             throw new UnauthorizedError(url, response.status);
 
-        return await response.text();
+        const body = await response.text();
+
+        return {
+            body,
+            headers: response.headers,
+        };
     } catch (error) {
         if (error instanceof UnauthorizedError)
             throw error;
@@ -92,11 +101,25 @@ export interface ParsingOptions {
     normalizeBlankNodes: boolean;
 }
 
+export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
+    fetch = fetch ?? window.fetch;
+
+    const statements = await turtleToQuads(body);
+
+    await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/turtle' },
+        body,
+    });
+
+    return new SolidDocument(url, statements, new Headers({}));
+}
+
 export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<SolidDocument> {
-    const data = await fetchRawSolidDocument(url, fetch ?? window.fetch);
+    const { body: data, headers } = await fetchRawSolidDocument(url, fetch ?? window.fetch);
     const statements = await turtleToQuads(data, { documentUrl: url });
 
-    return new SolidDocument(url, statements);
+    return new SolidDocument(url, statements, headers);
 }
 
 export function normalizeSparql(sparql: string): string {
@@ -116,6 +139,16 @@ export function quadToTurtle(quad: Quad): string {
     const writer = new TurtleWriter;
 
     return writer.quadsToString([quad]).slice(0, -1);
+}
+
+export async function solidDocumentExists(url: string, fetch?: Fetch): Promise<boolean> {
+    try {
+        const document = await fetchSolidDocument(url, fetch);
+
+        return !document.isEmpty();
+    } catch (error) {
+        return false;
+    }
 }
 
 export async function sparqlToQuads(
@@ -193,4 +226,14 @@ export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOption
     } catch (error) {
         throw new MalformedSolidDocumentError(options.documentUrl ?? null, SolidDocumentFormat.Turtle, error.message);
     }
+}
+
+export async function updateSolidDocument(url: string, body: string, fetch?: Fetch): Promise<void> {
+    fetch = fetch ?? window.fetch;
+
+    await fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/sparql-update' },
+        body,
+    });
 }
