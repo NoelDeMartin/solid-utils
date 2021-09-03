@@ -7,8 +7,8 @@ import SolidThing from './SolidThing';
 export default class SolidDocument {
 
     public readonly url: string;
+    public readonly headers: Headers;
     private quads: Quad[];
-    private headers: Headers;
 
     public constructor(url: string, quads: Quad[], headers: Headers) {
         this.url = url;
@@ -30,6 +30,27 @@ export default class SolidDocument {
 
     public isStorage(): boolean {
         return !!this.headers.get('Link')?.match(/<http:\/\/www\.w3\.org\/ns\/pim\/space#Storage>;[^,]+rel="type"/);
+    }
+
+    public getLastModified(): Date | null {
+        const parseDate = (value?: unknown): Date | null => {
+            if (!value)
+                return null;
+
+            try {
+                const date = new Date(value as string | number | Date);
+                const time = date.getTime();
+
+                return isNaN(time) || time === 0 ? null : date;
+            } catch (error) {
+                return null;
+            }
+        };
+
+        return parseDate(this.headers.get('last-modified'))
+            ?? parseDate(this.statement(this.url, 'purl:modified')?.object.value)
+            ?? parseDate(this.statement(undefined, 'purl:modified')?.object.value)
+            ?? null;
     }
 
     public statements(subject?: string, predicate?: string, object?: string): Quad[] {
