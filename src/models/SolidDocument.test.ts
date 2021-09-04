@@ -24,7 +24,7 @@ describe('SolidDocument', () => {
         expect(document.getLastModified()).toEqual(new Date(1630685352000));
     });
 
-    it('Parses last modified from document quad', () => {
+    it('Parses last modified from document purl:modified', () => {
         const document = new SolidDocument(
             'https://pod.example.org/my-document',
             turtleToQuadsSync(`
@@ -42,12 +42,16 @@ describe('SolidDocument', () => {
         expect(document.getLastModified()).toEqual(new Date(1630685352000));
     });
 
-    it('Parses last modified from any quad', () => {
+    it('Parses last modified from any purl date', () => {
         const document = new SolidDocument(
             'https://pod.example.org/my-document',
             turtleToQuadsSync(`
-                <./fallback>
+                <./fallback-one>
                     <http://purl.org/dc/terms/modified>
+                    "2021-05-03T16:09:12.000Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+                <./fallback-two>
+                    <http://purl.org/dc/terms/created>
                     "2021-09-03T16:09:12.000Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
             `, { documentUrl: 'https://pod.example.org/my-document' }),
             new Headers({ 'Last-Modified': 'invalid date' }),

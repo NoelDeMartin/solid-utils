@@ -1,3 +1,4 @@
+import { parseDate } from '@noeldemartin/utils';
 import type { Quad } from 'rdf-js';
 
 import { expandIRI } from '@/helpers/vocabs';
@@ -33,23 +34,9 @@ export default class SolidDocument {
     }
 
     public getLastModified(): Date | null {
-        const parseDate = (value?: unknown): Date | null => {
-            if (!value)
-                return null;
-
-            try {
-                const date = new Date(value as string | number | Date);
-                const time = date.getTime();
-
-                return isNaN(time) || time === 0 ? null : date;
-            } catch (error) {
-                return null;
-            }
-        };
-
         return parseDate(this.headers.get('last-modified'))
             ?? parseDate(this.statement(this.url, 'purl:modified')?.object.value)
-            ?? parseDate(this.statement(undefined, 'purl:modified')?.object.value)
+            ?? this.getLatestDocumentDate()
             ?? null;
     }
 
@@ -81,6 +68,17 @@ export default class SolidDocument {
         const statements = this.statements(subject);
 
         return new SolidThing(subject, statements);
+    }
+
+    private getLatestDocumentDate(): Date | null {
+        const dates = [
+            ...this.statements(undefined, 'purl:modified'),
+            ...this.statements(undefined, 'purl:created'),
+        ]
+            .map(statement => parseDate(statement.object.value))
+            .filter((date): date is Date => date !== null);
+
+        return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : null;
     }
 
 }
