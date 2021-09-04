@@ -1,6 +1,6 @@
 {
   "name": "@noeldemartin/solid-utils",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "My JavaScript utilities for Solid",
   "main": "dist/noeldemartin-solid-utils.cjs.js",
   "module": "dist/noeldemartin-solid-utils.esm.js",
