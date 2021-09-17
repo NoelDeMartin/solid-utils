@@ -1,41 +1,68 @@
 import diff from 'jest-diff';
 
 import { normalizeSparql } from '@/helpers/io';
-import { sparqlEquals } from '@/helpers/testing';
+import { jsonldEquals, sparqlEquals } from '@/helpers/testing';
+import type { EqualityResult } from '@/helpers/testing';
+
+interface FormatResultOptions {
+    context: jest.MatcherContext;
+    hint: string;
+    expected: unknown;
+    received: unknown;
+}
+
+function formatResult(result: EqualityResult, options: FormatResultOptions) {
+    const pass = result.success;
+    const utils = options.context.utils;
+    const message = pass
+        ? () => [
+            result.message,
+            utils.matcherHint(options.hint),
+            [
+                `Expected: not ${utils.printExpected(options.expected)}`,
+                `Received: ${utils.printReceived(options.received)}`,
+            ].join('\n'),
+        ].join('\n\n')
+        : () => {
+            const diffString = diff(options.expected, options.received, {
+                expand: options.context.expand,
+            });
+
+            return [
+                result.message,
+                utils.matcherHint(options.hint),
+                diffString && diffString.includes('- Expect')
+                    ? `Difference:\n\n${diffString}`
+                    : [
+                        `Expected: ${utils.printExpected(options.expected)}`,
+                        `Received: ${utils.printReceived(options.received)}`,
+                    ].join('\n'),
+            ].join('\n\n');
+        };
+
+    return { pass, message };
+}
 
 const matchers: jest.ExpectExtendMap = {
+    async toEqualJsonLD(received, expected) {
+        const result = await jsonldEquals(expected, received);
+
+        return formatResult(result, {
+            context: this,
+            hint: 'toEqualJsonLD',
+            expected,
+            received,
+        });
+    },
     toEqualSparql(received, expected) {
         const result = sparqlEquals(expected, received);
-        const pass = result.success;
-        const normalizedReceived = normalizeSparql(received);
-        const normalizedExpected = normalizeSparql(expected);
-        const message = pass
-            ? () => [
-                result.message,
-                this.utils.matcherHint('toEqualSparql'),
-                [
-                    `Expected: not ${this.utils.printExpected(normalizedExpected)}`,
-                    `Received: ${this.utils.printReceived(normalizedReceived)}`,
-                ].join('\n'),
-            ].join('\n\n')
-            : () => {
-                const diffString = diff(normalizedExpected, normalizedReceived, {
-                    expand: this.expand,
-                });
 
-                return [
-                    result.message,
-                    this.utils.matcherHint('toEqualJsonLD'),
-                    diffString && diffString.includes('- Expect')
-                        ? `Difference:\n\n${diffString}`
-                        : [
-                            `Expected: ${this.utils.printExpected(normalizedExpected)}`,
-                            `Received: ${this.utils.printReceived(normalizedReceived)}`,
-                        ].join('\n'),
-                ].join('\n\n');
-            };
-
-        return { pass, message };
+        return formatResult(result, {
+            context: this,
+            hint: 'toEqualSparql',
+            expected: normalizeSparql(expected),
+            received: normalizeSparql(received),
+        });
     },
 };
 

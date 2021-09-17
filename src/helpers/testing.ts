@@ -1,7 +1,8 @@
+import type { JsonLD } from '@/helpers/jsonld';
 import { pull } from '@noeldemartin/utils';
 import type { Quad, Quad_Object } from 'rdf-js';
 
-import { quadToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import { jsonldToQuads, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 const patternRegExps: Record<string, RegExp> = {};
 
@@ -64,6 +65,31 @@ export interface EqualityResult {
     message: string;
     expected: string;
     actual: string;
+}
+
+export async function jsonldEquals(expected: JsonLD, actual: JsonLD): Promise<EqualityResult> {
+    // TODO catch parsing errors and improve message.
+
+    const expectedQuads = await jsonldToQuads(expected);
+    const actualQuads = await jsonldToQuads(actual);
+    const expectedTurtle = quadsToTurtle(expectedQuads);
+    const actualTurtle = quadsToTurtle(actualQuads);
+    const result = (success: boolean, message: string) => ({
+        success,
+        message,
+        expected: expectedTurtle,
+        actual: actualTurtle,
+    });
+
+    if (expectedQuads.length !== actualQuads.length)
+        return result(false, `Expected ${expectedQuads.length} triples, found ${actualQuads.length}.`);
+
+    for (const expectedQuad of expectedQuads) {
+        if (!actualQuads.some(actualQuad => quadEquals(expectedQuad, actualQuad)))
+            return result(false, `Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
+    }
+
+    return result(true, 'jsonld matches');
 }
 
 export function sparqlEquals(expected: string, actual: string): EqualityResult {

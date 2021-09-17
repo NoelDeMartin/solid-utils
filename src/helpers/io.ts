@@ -1,5 +1,7 @@
 import { arr, arrayFilter, arrayReplace,objectWithoutEmpty } from '@noeldemartin/utils';
 import { BlankNode as N3BlankNode, Quad as N3Quad, Parser as TurtleParser, Writer as TurtleWriter } from 'n3';
+import type { JsonLdDocument } from 'jsonld';
+import { toRDF } from 'jsonld';
 import md5 from 'md5';
 import type { Quad } from 'rdf-js';
 import type { Term as N3Term } from 'n3';
@@ -10,6 +12,8 @@ import MalformedSolidDocumentError, { SolidDocumentFormat } from '@/errors/Malfo
 import NetworkRequestError from '@/errors/NetworkRequestError';
 import NotFoundError from '@/errors/NotFoundError';
 import UnauthorizedError from '@/errors/UnauthorizedError';
+import { isJsonLDGraph } from '@/helpers/jsonld';
+import type { JsonLD } from '@/helpers/jsonld';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<any>;
@@ -122,6 +126,16 @@ export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<So
     return new SolidDocument(url, statements, headers);
 }
 
+export async function jsonldToQuads(jsonld: JsonLD): Promise<Quad[]> {
+    if (isJsonLDGraph(jsonld)) {
+        const graphQuads = await Promise.all(jsonld['@graph'].map(jsonldToQuads));
+
+        return graphQuads.flat();
+    }
+
+    return toRDF(jsonld as JsonLdDocument) as Promise<Quad[]>;
+}
+
 export function normalizeSparql(sparql: string): string {
     const quads = sparqlToQuadsSync(sparql);
 
@@ -133,6 +147,12 @@ export function normalizeSparql(sparql: string): string {
             return normalizedOperations.concat(`${operation.toUpperCase()} DATA {\n${normalizedQuads}\n}`);
         }, [] as string[])
         .join(' ;\n');
+}
+
+export function quadsToTurtle(quads: Quad[]): string {
+    const writer = new TurtleWriter;
+
+    return writer.quadsToString(quads);
 }
 
 export function quadToTurtle(quad: Quad): string {

@@ -1,6 +1,77 @@
-import { normalizeSparql, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import { jsonldToQuads, normalizeSparql, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 describe('IO', () => {
+
+    it('parses jsonld', async () => {
+        // Arrange
+        const jsonld = {
+            '@context': { '@vocab': 'https://schema.org/' },
+            '@type': 'Movie',
+            'name': 'Spirited Away',
+        };
+
+        // Act
+        const quads = await jsonldToQuads(jsonld);
+
+        // Assert
+        expect(quads).toHaveLength(2);
+
+        expect(quads[0].subject.termType).toEqual('BlankNode');
+        expect(quads[0].predicate.termType).toEqual('NamedNode');
+        expect(quads[0].predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+        expect(quads[0].object.termType).toEqual('NamedNode');
+        expect(quads[0].object.value).toEqual('https://schema.org/Movie');
+
+        expect(quads[1].subject.termType).toEqual('BlankNode');
+        expect(quads[1].predicate.termType).toEqual('NamedNode');
+        expect(quads[1].predicate.value).toEqual('https://schema.org/name');
+        expect(quads[1].object.termType).toEqual('Literal');
+        expect(quads[1].object.value).toEqual('Spirited Away');
+    });
+
+    it('parses jsonld graphs', async () => {
+        // Arrange
+        const jsonld = {
+            '@graph': [
+                {
+                    '@context': { '@vocab': 'https://schema.org/' },
+                    '@id': 'solid://movies/spirited-away',
+                    '@type': 'Movie',
+                    'name': 'Spirited Away',
+                },
+                {
+                    '@context': { '@vocab': 'https://schema.org/' },
+                    '@id': 'solid://movies/spirited-away',
+                    '@type': 'Movie',
+                    'name': 'Spirited Away',
+                },
+            ],
+        };
+
+        // Act
+        const quads = await jsonldToQuads(jsonld);
+
+        // Assert
+        expect(quads).toHaveLength(4);
+
+        [0, 2].forEach(index => {
+            expect(quads[index].subject.termType).toEqual('NamedNode');
+            expect(quads[index].subject.value).toEqual('solid://movies/spirited-away');
+            expect(quads[index].predicate.termType).toEqual('NamedNode');
+            expect(quads[index].predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+            expect(quads[index].object.termType).toEqual('NamedNode');
+            expect(quads[index].object.value).toEqual('https://schema.org/Movie');
+        });
+
+        [1, 3].forEach(index => {
+            expect(quads[index].subject.termType).toEqual('NamedNode');
+            expect(quads[index].subject.value).toEqual('solid://movies/spirited-away');
+            expect(quads[index].predicate.termType).toEqual('NamedNode');
+            expect(quads[index].predicate.value).toEqual('https://schema.org/name');
+            expect(quads[index].object.termType).toEqual('Literal');
+            expect(quads[index].object.value).toEqual('Spirited Away');
+        });
+    });
 
     it('normalizes sparql', () => {
         // Arrange

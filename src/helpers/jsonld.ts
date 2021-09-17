@@ -6,3 +6,7 @@ export type JsonLD = Partial<{
 
 export type JsonLDResource = Omit<JsonLD, '@id'> & { '@id': string };
 export type JsonLDGraph = { '@graph': JsonLDResource[] };
+
+export function isJsonLDGraph(jsonld: JsonLD): jsonld is JsonLDGraph {
+    return '@graph' in jsonld;
+}
