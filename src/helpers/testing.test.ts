@@ -170,4 +170,89 @@ describe('Testing', () => {
         expect(result.success).toBe(true);
     });
 
+    it('supports aliases in regex patterns', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeInstructions <#[[step-1][.*]]>, <#[[step-2][.*]]> .
+
+            <#[[step-1][.*]]>
+                a schema:HowToStep ;
+                schema:text "Boil the noodles" .
+
+            <#[[step-2][.*]]>
+                a schema:HowToStep ;
+                schema:text "Dip them into the broth" .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeInstructions <#ramen-step-1>, <#ramen-step-2> .
+
+            <#ramen-step-1>
+                a schema:HowToStep ;
+                schema:text "Boil the noodles" .
+
+            <#ramen-step-2>
+                a schema:HowToStep ;
+                schema:text "Dip them into the broth" .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(true);
+    });
+
+    // TODO
+    it.skip('aliases match regex patterns', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeInstructions <#[[step-1][.*]]>, <#[[step-2][.*]]> .
+
+            <#[[step-1][.*]]>
+                a schema:HowToStep ;
+                schema:text "Boil the noodles" .
+
+            <#[[step-2][.*]]>
+                a schema:HowToStep ;
+                schema:text "Dip them into the broth" .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:recipeInstructions <#ramen-step-1>, <#ramen-step-2> .
+
+            <#ramen-step-1>
+                a schema:HowToStep ;
+                schema:text "Boil the noodles" .
+
+            <#ramen-step-3>
+                a schema:HowToStep ;
+                schema:text "Dip them into the broth" .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(false);
+    });
+
 });

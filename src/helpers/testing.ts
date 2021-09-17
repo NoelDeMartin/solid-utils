@@ -4,23 +4,29 @@ import type { Quad, Quad_Object } from 'rdf-js';
 
 import { jsonldToQuads, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
-const patternRegExps: Record<string, RegExp> = {};
+let patternsRegExpsIndex: Record<string, RegExp> = {};
 
 function containsPatterns(value: string): boolean {
-    return /\[\[([^\]]+)\]\]/.test(value);
+    return /\[\[(.*\]\[)?([^\]]+)\]\]/.test(value);
 }
 
 function quadValueEquals(expected: string, actual: string): boolean {
     if (!containsPatterns(expected))
         return expected === actual;
 
-    if (!(expected in patternRegExps)) {
-        const patternMatches = expected.matchAll(/\[\[([^\]]+)\]\]/g);
+    const patternAliases = [];
+
+    if (!(expected in patternsRegExpsIndex)) {
+        const patternMatches = expected.matchAll(/\[\[((.*)\]\[)?([^\]]+)\]\]/g);
         const patterns: string[] = [];
         let expectedRegExp = expected;
 
         for (const patternMatch of patternMatches) {
-            patterns.push(patternMatch[1]);
+            if (patternMatch[2]) {
+                patternAliases.push(patternMatch[2]);
+            }
+
+            patterns.push(patternMatch[3]);
 
             expectedRegExp = expectedRegExp.replace(patternMatch[0], `%PATTERN${patterns.length - 1}%`);
         }
@@ -31,10 +37,10 @@ function quadValueEquals(expected: string, actual: string): boolean {
             expectedRegExp = expectedRegExp.replace(`%PATTERN${patternIndex}%`, pattern);
         }
 
-        patternRegExps[expected] = new RegExp(expectedRegExp);
+        patternsRegExpsIndex[expected] = new RegExp(expectedRegExp);
     }
 
-    return patternRegExps[expected].test(actual);
+    return patternsRegExpsIndex[expected].test(actual);
 }
 
 function quadObjectEquals(expected: Quad_Object, actual: Quad_Object): boolean {
@@ -60,6 +66,10 @@ function quadEquals(expected: Quad, actual: Quad): boolean {
         && quadValueEquals(expected.predicate.value, actual.predicate.value);
 }
 
+function resetPatterns(): void {
+    patternsRegExpsIndex = {};
+}
+
 export interface EqualityResult {
     success: boolean;
     message: string;
@@ -69,6 +79,7 @@ export interface EqualityResult {
 
 export async function jsonldEquals(expected: JsonLD, actual: JsonLD): Promise<EqualityResult> {
     // TODO catch parsing errors and improve message.
+    resetPatterns();
 
     const expectedQuads = await jsonldToQuads(expected);
     const actualQuads = await jsonldToQuads(actual);
@@ -94,6 +105,7 @@ export async function jsonldEquals(expected: JsonLD, actual: JsonLD): Promise<Eq
 
 export function sparqlEquals(expected: string, actual: string): EqualityResult {
     // TODO catch parsing errors and improve message.
+    resetPatterns();
 
     const expectedOperations = sparqlToQuadsSync(expected, { normalizeBlankNodes: true });
     const actualOperations = sparqlToQuadsSync(actual, { normalizeBlankNodes: true });
@@ -124,6 +136,7 @@ export function sparqlEquals(expected: string, actual: string): EqualityResult {
 
 export function turtleEquals(expected: string, actual: string): EqualityResult {
     // TODO catch parsing errors and improve message.
+    resetPatterns();
 
     const expectedQuads = turtleToQuadsSync(expected, { normalizeBlankNodes: true });
     const actualQuads = turtleToQuadsSync(actual, { normalizeBlankNodes: true });
