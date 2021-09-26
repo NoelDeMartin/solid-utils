@@ -1,5 +1,3 @@
-import diff from 'jest-diff';
-
 import { normalizeSparql } from '@/helpers/io';
 import { jsonldEquals, sparqlEquals } from '@/helpers/testing';
 import type { EqualityResult } from '@/helpers/testing';
@@ -24,19 +22,9 @@ function formatResult(result: EqualityResult, options: FormatResultOptions) {
             ].join('\n'),
         ].join('\n\n')
         : () => {
-            const diffString = diff(options.expected, options.received, {
-                expand: options.context.expand,
-            });
-
             return [
                 result.message,
                 utils.matcherHint(options.hint),
-                diffString && diffString.includes('- Expect')
-                    ? `Difference:\n\n${diffString}`
-                    : [
-                        `Expected: ${utils.printExpected(options.expected)}`,
-                        `Received: ${utils.printReceived(options.received)}`,
-                    ].join('\n'),
             ].join('\n\n');
         };
 
