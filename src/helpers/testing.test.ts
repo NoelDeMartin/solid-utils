@@ -237,6 +237,28 @@ describe('Testing', () => {
         expect(result.success).toBe(false);
     });
 
+    it('allows regex patterns to be mixed up', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#[[instruction-1][.*]]-operation-[[operation-1][.*]]> schema:object <#[[instruction-1][.*]]> .
+            <#[[instruction-1][.*]]-metadata> schema:object <#[[instruction-1][.*]]> .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen-step-1-metadata> schema:object <#ramen> .
+            <#ramen-step-1-operation-1> schema:object <#ramen> .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(true);
+    });
+
     // TODO
     it.skip('aliases match regex patterns', () => {
         // Arrange

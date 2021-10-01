@@ -36,7 +36,7 @@ function quadValueEquals(expected: string, actual: string): boolean {
     const patternAliases = [];
 
     if (!(expected in patternsRegExpsIndex)) {
-        const patternMatches = expected.matchAll(/\[\[((.*)\]\[)?([^\]]+)\]\]/g);
+        const patternMatches = expected.matchAll(/\[\[((.*?)\]\[)?([^\]]+)\]\]/g);
         const patterns: string[] = [];
         let expectedRegExp = expected;
 
