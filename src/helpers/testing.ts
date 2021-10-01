@@ -1,10 +1,29 @@
+import { Error, arrayRemove, pull } from '@noeldemartin/utils';
 import type { JsonLD } from '@/helpers/jsonld';
-import { pull } from '@noeldemartin/utils';
 import type { Quad, Quad_Object } from 'rdf-js';
 
 import { jsonldToQuads, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 let patternsRegExpsIndex: Record<string, RegExp> = {};
+
+class ExpectedQuadAssertionError extends Error {
+
+    constructor(public readonly expectedQuad: Quad) {
+        super(`Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
+    }
+
+}
+
+function assertExpectedQuadsExist(expectedQuads: Quad[], actualQuads: Quad[]): void {
+    for (const expectedQuad of expectedQuads) {
+        const matchingQuad = actualQuads.find(actualQuad => quadEquals(expectedQuad, actualQuad));
+
+        if (!matchingQuad)
+            throw new ExpectedQuadAssertionError(expectedQuad);
+
+        arrayRemove(actualQuads, matchingQuad);
+    }
+}
 
 function containsPatterns(value: string): boolean {
     return /\[\[(.*\]\[)?([^\]]+)\]\]/.test(value);
@@ -95,9 +114,13 @@ export async function jsonldEquals(expected: JsonLD, actual: JsonLD): Promise<Eq
     if (expectedQuads.length !== actualQuads.length)
         return result(false, `Expected ${expectedQuads.length} triples, found ${actualQuads.length}.`);
 
-    for (const expectedQuad of expectedQuads) {
-        if (!actualQuads.some(actualQuad => quadEquals(expectedQuad, actualQuad)))
-            return result(false, `Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
+    try {
+        assertExpectedQuadsExist(expectedQuads, actualQuads);
+    } catch (error) {
+        if (!(error instanceof ExpectedQuadAssertionError))
+            throw error;
+
+        return result(false, error.message);
     }
 
     return result(true, 'jsonld matches');
@@ -121,9 +144,16 @@ export function sparqlEquals(expected: string, actual: string): EqualityResult {
         if (expectedQuads.length !== actualQuads.length)
             return result(false, `Expected ${expectedQuads.length} ${operation} triples, found ${actualQuads.length}.`);
 
-        for (const expectedQuad of expectedQuads) {
-            if (!actualQuads.some(actualQuad => quadEquals(expectedQuad, actualQuad)))
-                return result(false, `Couldn't find the following ${operation} triple: ${quadToTurtle(expectedQuad)}`);
+        try {
+            assertExpectedQuadsExist(expectedQuads, actualQuads);
+        } catch (error) {
+            if (!(error instanceof ExpectedQuadAssertionError))
+                throw error;
+
+            return result(
+                false,
+                `Couldn't find the following ${operation} triple: ${quadToTurtle(error.expectedQuad)}`,
+            );
         }
     }
 
@@ -145,9 +175,13 @@ export function turtleEquals(expected: string, actual: string): EqualityResult {
     if (expectedQuads.length !== actualQuads.length)
         return result(false, `Expected ${expectedQuads.length} triples, found ${actualQuads.length}.`);
 
-    for (const expectedQuad of expectedQuads) {
-        if (!actualQuads.some(actualQuad => quadEquals(expectedQuad, actualQuad)))
-            return result(false, `Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
+    try {
+        assertExpectedQuadsExist(expectedQuads, actualQuads);
+    } catch (error) {
+        if (!(error instanceof ExpectedQuadAssertionError))
+            throw error;
+
+        return result(false, error.message);
     }
 
     return result(true, 'turtle matches');

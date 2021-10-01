@@ -212,6 +212,31 @@ describe('Testing', () => {
         expect(result.success).toBe(true);
     });
 
+    it('counts matching triples only once', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen", "Ramen" .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#ramen>
+                a schema:Recipe ;
+                schema:name "Ramen" ;
+                schema:description "is life" .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(false);
+    });
+
     // TODO
     it.skip('aliases match regex patterns', () => {
         // Arrange
