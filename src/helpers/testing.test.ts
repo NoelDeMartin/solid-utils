@@ -259,6 +259,28 @@ describe('Testing', () => {
         expect(result.success).toBe(true);
     });
 
+    it('matches built-in patterns', () => {
+        // Arrange
+        const expected = `
+            @prefix schema: <https://schema.org/> .
+
+            <#[[foobar][%uuid%]]> schema:description "Lorem ipsum" .
+            <#[[%uuid%]]> schema:description "Dolor sit amet" .
+        `;
+        const actual = `
+            @prefix schema: <https://schema.org/> .
+
+            <#20421db7-0c7d-419c-b27e-2c9b3cc026b3> schema:description "Lorem ipsum" .
+            <#d4b41533-dd5d-4a66-9d3f-316f80f135b2> schema:description "Dolor sit amet" .
+        `;
+
+        // Act
+        const result = turtleEquals(expected, actual);
+
+        // Assert
+        expect(result.success).toBe(true);
+    });
+
     // TODO
     it.skip('aliases match regex patterns', () => {
         // Arrange

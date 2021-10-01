@@ -5,6 +5,9 @@ import type { Quad, Quad_Object } from 'rdf-js';
 import { jsonldToQuads, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 let patternsRegExpsIndex: Record<string, RegExp> = {};
+const builtInPatterns: Record<string, string> = {
+    '%uuid%': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+};
 
 class ExpectedQuadAssertionError extends Error {
 
@@ -53,7 +56,7 @@ function quadValueEquals(expected: string, actual: string): boolean {
         expectedRegExp = expectedRegExp.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
         for (const [patternIndex, pattern] of Object.entries(patterns)) {
-            expectedRegExp = expectedRegExp.replace(`%PATTERN${patternIndex}%`, pattern);
+            expectedRegExp = expectedRegExp.replace(`%PATTERN${patternIndex}%`, builtInPatterns[pattern] ?? pattern);
         }
 
         patternsRegExpsIndex[expected] = new RegExp(expectedRegExp);
