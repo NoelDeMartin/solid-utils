@@ -31,8 +31,10 @@ export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fet
         }
     `;
 
-    createSolidDocument(typeIndexUrl, typeIndexBody, fetch);
-    updateSolidDocument(user.webId, profileUpdateBody, fetch);
+    await Promise.all([
+        createSolidDocument(typeIndexUrl, typeIndexBody, fetch),
+        updateSolidDocument(user.webId, profileUpdateBody, fetch),
+    ]);
 
     return typeIndexUrl;
 }
