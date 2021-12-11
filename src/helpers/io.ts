@@ -244,7 +244,11 @@ export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOption
             ? normalizeBlankNodes(quads)
             : quads;
     } catch (error) {
-        throw new MalformedSolidDocumentError(options.documentUrl ?? null, SolidDocumentFormat.Turtle, error.message);
+        throw new MalformedSolidDocumentError(
+            options.documentUrl ?? null,
+            SolidDocumentFormat.Turtle,
+            (error as Error).message ?? '',
+        );
     }
 }
 

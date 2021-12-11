@@ -9,17 +9,17 @@
     "build": "rm dist -rf && npm run build:js && npm run build:types",
     "build:js": "noeldemartin-build-javascript",
     "build:types": "noeldemartin-build-types",
-    "lint": "eslint src && tsc --noEmit",
+    "lint": "noeldemartin-lint src",
     "publish-next": "noeldemartin-publish-next",
     "test": "jest --verbose",
     "test:coverage": "jest --coverage"
   },
-  "engines": {
-    "node": ">=14.15.0 <15"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/noeldemartin/solid-utils.git"
+  },
+  "engines": {
+    "node": ">=14.x"
   },
   "author": "Noel De Martin",
   "license": "MIT",
@@ -29,7 +29,7 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
-    "@noeldemartin/utils": "^0.2.1-next.1aba291913ffcb294cd352af9e5791fc68555b0c",
+    "@noeldemartin/utils": "^0.2.1-next.79e75835cf2fd1936233e4e3b60c5a9e1e949a23",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",
@@ -44,8 +44,8 @@
     "@babel/preset-env": "^7.14.2",
     "@babel/preset-typescript": "^7.13.0",
     "@microsoft/api-extractor": "^7.15.2",
-    "@noeldemartin/eslint-config-typescript": "^0.1.0",
-    "@noeldemartin/scripts": "^0.1.1",
+    "@noeldemartin/eslint-config-typescript": "^0.1.0-next.e83e5d37837b9845675534ab9d3745820b1326b4",
+    "@noeldemartin/scripts": "^0.1.1-next.40031a27875d800f17a8b8e7899e8304a16256c3",
     "@rollup/plugin-alias": "^3.1.2",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^19.0.0",
