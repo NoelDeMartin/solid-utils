@@ -1,5 +1,6 @@
-import { arr, objectWithoutEmpty, urlParse } from '@noeldemartin/utils';
+import { arr, isArray, isObject, objectDeepClone, objectWithoutEmpty, tap, urlParse, uuid } from '@noeldemartin/utils';
 import type { UrlParts } from '@noeldemartin/utils';
+import type { JsonLD, JsonLDResource } from '@/helpers';
 
 export interface SubjectParts {
     containerUrl?: string;
@@ -23,6 +24,25 @@ function getContainerUrl(parts: UrlParts): string | null {
     return parts.protocol && parts.domain
         ? `${parts.protocol}://${parts.domain}${containerPath ?? '/'}`
         : containerPath;
+}
+
+function __mintJsonLDIdentifiers(jsonld: JsonLD): void {
+    if (!('@type' in jsonld) || '@value' in jsonld)
+        return;
+
+    jsonld['@id'] = jsonld['@id'] ?? uuid();
+
+    for (const propertyValue of Object.values(jsonld)) {
+        if (isObject(propertyValue))
+            __mintJsonLDIdentifiers(propertyValue);
+
+        if (isArray(propertyValue))
+            propertyValue.forEach(value => isObject(value) && __mintJsonLDIdentifiers(value));
+    }
+}
+
+export function mintJsonLDIdentifiers(jsonld: JsonLD): JsonLDResource {
+    return tap(objectDeepClone(jsonld) as JsonLDResource, clone => __mintJsonLDIdentifiers(clone));
 }
 
 export function parseResourceSubject(subject: string): SubjectParts {
