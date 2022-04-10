@@ -1,4 +1,5 @@
 import { jsonldToQuads, normalizeSparql, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import type { Quad } from '@rdfjs/types';
 
 describe('IO', () => {
 
@@ -11,7 +12,7 @@ describe('IO', () => {
         };
 
         // Act
-        const quads = await jsonldToQuads(jsonld);
+        const quads = await jsonldToQuads(jsonld) as [Quad, Quad];
 
         // Assert
         expect(quads).toHaveLength(2);
@@ -55,21 +56,21 @@ describe('IO', () => {
         expect(quads).toHaveLength(4);
 
         [0, 2].forEach(index => {
-            expect(quads[index].subject.termType).toEqual('NamedNode');
-            expect(quads[index].subject.value).toEqual('solid://movies/spirited-away');
-            expect(quads[index].predicate.termType).toEqual('NamedNode');
-            expect(quads[index].predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
-            expect(quads[index].object.termType).toEqual('NamedNode');
-            expect(quads[index].object.value).toEqual('https://schema.org/Movie');
+            expect(quads[index]?.subject.termType).toEqual('NamedNode');
+            expect(quads[index]?.subject.value).toEqual('solid://movies/spirited-away');
+            expect(quads[index]?.predicate.termType).toEqual('NamedNode');
+            expect(quads[index]?.predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+            expect(quads[index]?.object.termType).toEqual('NamedNode');
+            expect(quads[index]?.object.value).toEqual('https://schema.org/Movie');
         });
 
         [1, 3].forEach(index => {
-            expect(quads[index].subject.termType).toEqual('NamedNode');
-            expect(quads[index].subject.value).toEqual('solid://movies/spirited-away');
-            expect(quads[index].predicate.termType).toEqual('NamedNode');
-            expect(quads[index].predicate.value).toEqual('https://schema.org/name');
-            expect(quads[index].object.termType).toEqual('Literal');
-            expect(quads[index].object.value).toEqual('Spirited Away');
+            expect(quads[index]?.subject.termType).toEqual('NamedNode');
+            expect(quads[index]?.subject.value).toEqual('solid://movies/spirited-away');
+            expect(quads[index]?.predicate.termType).toEqual('NamedNode');
+            expect(quads[index]?.predicate.value).toEqual('https://schema.org/name');
+            expect(quads[index]?.object.termType).toEqual('Literal');
+            expect(quads[index]?.object.value).toEqual('Spirited Away');
         });
     });
 
@@ -145,7 +146,7 @@ describe('IO', () => {
         `;
 
         // Act
-        const quads = turtleToQuadsSync(turtle);
+        const quads = turtleToQuadsSync(turtle) as [Quad, Quad];
 
         // Assert
         expect(quads).toHaveLength(2);

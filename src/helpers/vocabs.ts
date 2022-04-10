@@ -25,7 +25,7 @@ export function expandIRI(iri: string, options: Partial<ExpandIRIOptions> = {}):
 
     const [prefix, name] = iri.split(':');
 
-    if (name) {
+    if (prefix && name) {
         const expandedPrefix = knownPrefixes[prefix] ?? options.extraContext?.[prefix] ?? null;
 
         if (!expandedPrefix)

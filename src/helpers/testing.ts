@@ -1,4 +1,4 @@
-import { Error, arrayRemove, pull } from '@noeldemartin/utils';
+import { Error, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils';
 import type { JsonLD } from '@/helpers/jsonld';
 import type { Quad, Quad_Object } from 'rdf-js';
 
@@ -32,37 +32,36 @@ function containsPatterns(value: string): boolean {
     return /\[\[(.*\]\[)?([^\]]+)\]\]/.test(value);
 }
 
-function quadValueEquals(expected: string, actual: string): boolean {
-    if (!containsPatterns(expected))
-        return expected === actual;
-
+function createPatternRegexp(expected: string): RegExp {
     const patternAliases = [];
+    const patternMatches = stringMatchAll<4, 1 | 2>(
+        expected,
+        /\[\[((.*?)\]\[)?([^\]]+)\]\]/g,
+    );
+    const patterns: string[] = [];
+    let expectedRegExp = expected;
 
-    if (!(expected in patternsRegExpsIndex)) {
-        const patternMatches = expected.matchAll(/\[\[((.*?)\]\[)?([^\]]+)\]\]/g);
-        const patterns: string[] = [];
-        let expectedRegExp = expected;
+    for (const patternMatch of patternMatches) {
+        patternMatch[2] && patternAliases.push(patternMatch[2]);
 
-        for (const patternMatch of patternMatches) {
-            if (patternMatch[2]) {
-                patternAliases.push(patternMatch[2]);
-            }
+        patterns.push(patternMatch[3]);
 
-            patterns.push(patternMatch[3]);
-
-            expectedRegExp = expectedRegExp.replace(patternMatch[0], `%PATTERN${patterns.length - 1}%`);
-        }
-
-        expectedRegExp = expectedRegExp.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-
-        for (const [patternIndex, pattern] of Object.entries(patterns)) {
-            expectedRegExp = expectedRegExp.replace(`%PATTERN${patternIndex}%`, builtInPatterns[pattern] ?? pattern);
-        }
-
-        patternsRegExpsIndex[expected] = new RegExp(expectedRegExp);
+        expectedRegExp = expectedRegExp.replace(patternMatch[0], `%PATTERN${patterns.length - 1}%`);
     }
 
-    return patternsRegExpsIndex[expected].test(actual);
+    expectedRegExp = expectedRegExp.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
+    for (const [patternIndex, pattern] of Object.entries(patterns)) {
+        expectedRegExp = expectedRegExp.replace(`%PATTERN${patternIndex}%`, builtInPatterns[pattern] ?? pattern);
+    }
+
+    return new RegExp(expectedRegExp);
+}
+
+function quadValueEquals(expected: string, actual: string): boolean {
+    return containsPatterns(expected)
+        ? (patternsRegExpsIndex[expected] ??= createPatternRegexp(expected)).test(actual)
+        : expected === actual;
 }
 
 function quadObjectEquals(expected: Quad_Object, actual: Quad_Object): boolean {

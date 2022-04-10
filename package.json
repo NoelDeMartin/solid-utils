@@ -29,7 +29,7 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
-    "@noeldemartin/utils": "^0.2.1-next.1d98ba7681512958f6bf2401b26c5c6433670098",
+    "@noeldemartin/utils": "^0.2.1-next.4f81b85e1479ed4c2a4c5f40b066f55781ffc934",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",

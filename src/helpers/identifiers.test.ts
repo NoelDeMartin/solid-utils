@@ -36,7 +36,7 @@ describe('Identifiers helpers', () => {
         const createdAt = jsonldWithIds['http://purl.org/dc/terms/created'] as Record<string, unknown>;
         expect(createdAt['@id']).toBeUndefined();
 
-        const instructions = jsonldWithIds['instructions'] as JsonLD[];
+        const instructions = jsonldWithIds['instructions'] as [JsonLD, JsonLD];
         expect(instructions[0]['@id']).not.toBeUndefined();
         expect(instructions[1]['@id']).not.toBeUndefined();
     });
