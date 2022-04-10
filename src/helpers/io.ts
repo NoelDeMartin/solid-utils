@@ -1,7 +1,7 @@
 import md5 from 'md5';
-import { arr, arrayFilter, arrayReplace,objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
+import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
 import { BlankNode as N3BlankNode, Quad as N3Quad, Parser as TurtleParser, Writer as TurtleWriter } from 'n3';
-import { toRDF } from 'jsonld';
+import { fromRDF, toRDF } from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 import type { Quad } from 'rdf-js';
 import type { Term as N3Term } from 'n3';
@@ -13,10 +13,10 @@ import NetworkRequestError from '@/errors/NetworkRequestError';
 import NotFoundError from '@/errors/NotFoundError';
 import UnauthorizedError from '@/errors/UnauthorizedError';
 import { isJsonLDGraph } from '@/helpers/jsonld';
-import type { JsonLD } from '@/helpers/jsonld';
+import type { JsonLD, JsonLDGraph, JsonLDResource } from '@/helpers/jsonld';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export declare type AnyFetch = (input: any, options?: any) => Promise<any>;
+export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
@@ -44,7 +44,10 @@ async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<{ body:
         if (error instanceof UnauthorizedError)
             throw error;
 
-        throw new NetworkRequestError(url);
+        if (error instanceof NotFoundError)
+            throw error;
+
+        throw new NetworkRequestError(url, { cause: error });
     }
 }
 
@@ -114,7 +117,7 @@ export interface ParsingOptions {
 }
 
 export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
-    fetch = fetch ?? window.fetch;
+    fetch = fetch ?? window.fetch.bind(window);
 
     const statements = await turtleToQuads(body);
 
@@ -132,6 +135,19 @@ export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<So
     const statements = await turtleToQuads(data, { documentUrl: url });
 
     return new SolidDocument(url, statements, headers);
+}
+
+export async function fetchSolidDocumentIfFound(url: string, fetch?: Fetch): Promise<SolidDocument | null> {
+    try {
+        const document = await fetchSolidDocument(url, fetch);
+
+        return document;
+    } catch (error) {
+        if (!(error instanceof NotFoundError))
+            throw error;
+
+        return null;
+    }
 }
 
 export async function jsonldToQuads(jsonld: JsonLD): Promise<Quad[]> {
@@ -155,6 +171,14 @@ export function normalizeSparql(sparql: string): string {
             return normalizedOperations.concat(`${operation.toUpperCase()} DATA {\n${normalizedQuads}\n}`);
         }, [] as string[])
         .join(' ;\n');
+}
+
+export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
+    const graph = await fromRDF(quads);
+
+    return {
+        '@graph': graph as JsonLDResource[],
+    };
 }
 
 export function quadsToTurtle(quads: Quad[]): string {
@@ -261,7 +285,7 @@ export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOption
 }
 
 export async function updateSolidDocument(url: string, body: string, fetch?: Fetch): Promise<void> {
-    fetch = fetch ?? window.fetch;
+    fetch = fetch ?? window.fetch.bind(window);
 
     await fetch(url, {
         method: 'PATCH',

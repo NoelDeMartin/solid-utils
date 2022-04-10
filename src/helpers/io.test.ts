@@ -1,4 +1,4 @@
-import { jsonldToQuads, normalizeSparql, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import { jsonldToQuads, normalizeSparql, quadsToJsonLD, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 import type { Quad } from '@rdfjs/types';
 
 describe('IO', () => {
@@ -166,4 +166,26 @@ describe('IO', () => {
         expect(quads[1].object.value).toEqual('John Doe');
     });
 
+    it('converts quads to jsonld', async () => {
+        // Arrange
+        const quads = turtleToQuadsSync(`
+            @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+            <#me>
+                a foaf:Person ;
+                foaf:name "John Doe" .
+        `);
+
+        // Act
+        const jsonld = await quadsToJsonLD(quads);
+
+        // Assert
+        expect(jsonld).toEqual({
+            '@graph': [{
+                '@id': '#me',
+                '@type': ['http://xmlns.com/foaf/0.1/Person'],
+                'http://xmlns.com/foaf/0.1/name': [{ '@value': 'John Doe' }],
+            }],
+        });
+    });
 });

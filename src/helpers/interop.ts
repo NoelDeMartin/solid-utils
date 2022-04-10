@@ -6,7 +6,7 @@ import type { Fetch } from '@/helpers/io';
 import type { SolidUserProfile } from '@/helpers/auth';
 
 async function mintPrivateTypeIndexUrl(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
-    fetch = fetch ?? window.fetch;
+    fetch = fetch ?? window.fetch.bind(fetch);
 
     const storageUrl = user.storageUrls[0];
     const typeIndexUrl = `${storageUrl}settings/privateTypeIndex`;
@@ -17,7 +17,7 @@ async function mintPrivateTypeIndexUrl(user: SolidUserProfile, fetch?: Fetch): P
 }
 
 export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
-    fetch = fetch ?? window.fetch;
+    fetch = fetch ?? window.fetch.bind(fetch);
 
     const typeIndexUrl = await mintPrivateTypeIndexUrl(user, fetch);
     const typeIndexBody = `

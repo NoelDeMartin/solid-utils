@@ -6,6 +6,7 @@ export interface ExpandIRIOptions {
 }
 
 const knownPrefixes: RDFContext = {
+    acl: 'http://www.w3.org/ns/auth/acl#',
     foaf: 'http://xmlns.com/foaf/0.1/',
     pim: 'http://www.w3.org/ns/pim/space#',
     purl: 'http://purl.org/dc/terms/',
