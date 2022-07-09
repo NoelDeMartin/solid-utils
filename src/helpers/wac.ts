@@ -1,4 +1,4 @@
-import { objectWithoutEmpty, requireUrlParentDirectory } from '@noeldemartin/utils';
+import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
 import { fetchSolidDocumentIfFound } from '@/helpers/io';
 import type SolidDocument from '@/models/SolidDocument';
@@ -11,7 +11,11 @@ async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<s
     const linkHeader = resourceHead.headers.get('Link') ?? '';
     const url = linkHeader.match(/<([^>]+)>;\s*rel="acl"/)?.[1] ?? null;
 
-    return url ?? fail(`Could not find ACL Resource for '${resourceUrl}'`);
+    if (!url) {
+        throw new Error(`Could not find ACL Resource for '${resourceUrl}'`);
+    }
+
+    return urlResolve(requireUrlParentDirectory(resourceUrl), url);
 }
 
 async function fetchEffectiveACL(
