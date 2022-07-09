@@ -16,17 +16,15 @@ function formatResult(result: EqualityResult, options: FormatResultOptions) {
         ? () => [
             result.message,
             utils.matcherHint(options.hint),
+        ].join('\n\n')
+        : () => [
+            result.message,
+            utils.matcherHint(options.hint),
             [
                 `Expected: not ${utils.printExpected(options.expected)}`,
                 `Received: ${utils.printReceived(options.received)}`,
             ].join('\n'),
-        ].join('\n\n')
-        : () => {
-            return [
-                result.message,
-                utils.matcherHint(options.hint),
-            ].join('\n\n');
-        };
+        ].join('\n\n');
 
     return { pass, message };
 }
