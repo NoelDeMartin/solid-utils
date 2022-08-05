@@ -17,8 +17,8 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
     const documentUrl = urlRoute(webId);
     const document = await fetchSolidDocument(documentUrl, fetch);
 
-    if (!document.isPersonalProfile())
-        throw new Error(`Document at ${documentUrl} is not a profile.`);
+    if (!document.isPersonalProfile() && !document.contains(webId, 'solid:oidcIssuer'))
+        throw new Error(`${webId} is not a valid webId.`);
 
     const storageUrls = document.statements(webId, 'pim:storage').map(storage => storage.object.value);
     const publicTypeIndex = document.statement(webId, 'solid:publicTypeIndex');
