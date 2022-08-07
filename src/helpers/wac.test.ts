@@ -35,7 +35,7 @@ describe('WAC helpers', () => {
         expect(
             document.contains(
                 'https://example.com/alice/movies/my-favorite-movie.acl#owner',
-                'rdfs:type',
+                'rdf:type',
                 'acl:Authorization',
             ),
         ).toBe(true);

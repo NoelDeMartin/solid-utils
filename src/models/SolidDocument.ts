@@ -24,7 +24,7 @@ export default class SolidDocument {
     public isPersonalProfile(): boolean {
         return !!this.statement(
             this.url,
-            expandIRI('rdfs:type'),
+            expandIRI('rdf:type'),
             expandIRI('foaf:PersonalProfileDocument'),
         );
     }

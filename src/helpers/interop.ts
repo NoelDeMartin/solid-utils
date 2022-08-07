@@ -46,7 +46,7 @@ export async function findContainerRegistration(
 ): Promise<SolidThing | null> {
     const typeIndex = await fetchSolidDocument(typeIndexUrl, fetch);
     const containerQuad = typeIndex
-        .statements(undefined, 'rdfs:type', 'solid:TypeRegistration')
+        .statements(undefined, 'rdf:type', 'solid:TypeRegistration')
         .find(
             statement =>
                 typeIndex.contains(statement.subject.value, 'solid:forClass', childrenType) &&
