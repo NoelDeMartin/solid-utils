@@ -3,22 +3,18 @@ import type { Quad } from 'rdf-js';
 
 import { expandIRI } from '@/helpers/vocabs';
 
-import SolidThing from './SolidThing';
+import SolidStore from './SolidStore';
 
-export default class SolidDocument {
+export default class SolidDocument extends SolidStore {
 
     public readonly url: string;
     public readonly headers: Headers;
-    private quads: Quad[];
 
     public constructor(url: string, quads: Quad[], headers: Headers) {
-        this.url = url;
-        this.quads = quads;
-        this.headers = headers;
-    }
+        super(quads);
 
-    public isEmpty(): boolean {
-        return this.statements.length === 0;
+        this.url = url;
+        this.headers = headers;
     }
 
     public isPersonalProfile(): boolean {
@@ -40,34 +36,8 @@ export default class SolidDocument {
             ?? null;
     }
 
-    public statements(subject?: string, predicate?: string, object?: string): Quad[] {
-        return this.quads.filter(
-            statement =>
-                (!object || statement.object.value === expandIRI(object, { defaultPrefix: this.url })) &&
-                (!subject || statement.subject.value === expandIRI(subject, { defaultPrefix: this.url })) &&
-                (!predicate || statement.predicate.value === expandIRI(predicate, { defaultPrefix: this.url })),
-        );
-    }
-
-    public statement(subject?: string, predicate?: string, object?: string): Quad | null {
-        const statement = this.quads.find(
-            statement =>
-                (!object || statement.object.value === expandIRI(object, { defaultPrefix: this.url })) &&
-                (!subject || statement.subject.value === expandIRI(subject, { defaultPrefix: this.url })) &&
-                (!predicate || statement.predicate.value === expandIRI(predicate, { defaultPrefix: this.url })),
-        );
-
-        return statement ?? null;
-    }
-
-    public contains(subject: string, predicate?: string, object?: string): boolean {
-        return this.statement(subject, predicate, object) !== null;
-    }
-
-    public getThing(subject: string): SolidThing {
-        const statements = this.statements(subject);
-
-        return new SolidThing(subject, statements);
+    protected expandIRI(iri: string): string {
+        return expandIRI(iri, { defaultPrefix: this.url });
     }
 
     private getLatestDocumentDate(): Date | null {
