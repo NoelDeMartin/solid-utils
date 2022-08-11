@@ -1,9 +1,16 @@
-import { parseDate } from '@noeldemartin/utils';
+import { arrayFilter, parseDate, stringMatch } from '@noeldemartin/utils';
 import type { Quad } from 'rdf-js';
 
 import { expandIRI } from '@/helpers/vocabs';
 
 import SolidStore from './SolidStore';
+
+export enum SolidDocumentPermission {
+    Read = 'read',
+    Write = 'write',
+    Append = 'append',
+    Control = 'control',
+}
 
 export default class SolidDocument extends SolidStore {
 
@@ -29,6 +36,18 @@ export default class SolidDocument extends SolidStore {
         return !!this.headers.get('Link')?.match(/<http:\/\/www\.w3\.org\/ns\/pim\/space#Storage>;[^,]+rel="type"/);
     }
 
+    public isUserWritable(): boolean {
+        return this.getUserPermissions().includes(SolidDocumentPermission.Write);
+    }
+
+    public getUserPermissions(): SolidDocumentPermission[] {
+        return this.getPermissionsFromWAC('user');
+    }
+
+    public getPublicPermissions(): SolidDocumentPermission[] {
+        return this.getPermissionsFromWAC('public');
+    }
+
     public getLastModified(): Date | null {
         return parseDate(this.headers.get('last-modified'))
             ?? parseDate(this.statement(this.url, 'purl:modified')?.object.value)
@@ -49,6 +68,18 @@ export default class SolidDocument extends SolidStore {
             .filter((date): date is Date => date !== null);
 
         return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : null;
+    }
+
+    private getPermissionsFromWAC(type: string): SolidDocumentPermission[] {
+        const wacAllow = this.headers.get('WAC-Allow') ?? '';
+        const publicModes = stringMatch<2>(wacAllow, new RegExp(`${type}="([^"]+)"`))?.[1] ?? '';
+
+        return arrayFilter([
+            publicModes.includes('read') && SolidDocumentPermission.Read,
+            publicModes.includes('write') && SolidDocumentPermission.Write,
+            publicModes.includes('append') && SolidDocumentPermission.Append,
+            publicModes.includes('control') && SolidDocumentPermission.Control,
+        ]);
     }
 
 }

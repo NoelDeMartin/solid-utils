@@ -17,6 +17,10 @@ async function mintPrivateTypeIndexUrl(user: SolidUserProfile, fetch?: Fetch): P
 }
 
 export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
+    if (user.writableProfileUrl === null) {
+        throw new Error('Can\'t create type index without a writable profile document');
+    }
+
     fetch = fetch ?? window.fetch.bind(fetch);
 
     const typeIndexUrl = await mintPrivateTypeIndexUrl(user, fetch);
@@ -33,7 +37,7 @@ export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fet
 
     await Promise.all([
         createSolidDocument(typeIndexUrl, typeIndexBody, fetch),
-        updateSolidDocument(user.webId, profileUpdateBody, fetch),
+        updateSolidDocument(user.writableProfileUrl, profileUpdateBody, fetch),
     ]);
 
     return typeIndexUrl;
