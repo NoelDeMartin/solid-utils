@@ -2,4 +2,4 @@ export { default as MalformedSolidDocumentError, SolidDocumentFormat } from './M
 export { default as NetworkRequestError } from './NetworkRequestError';
 export { default as NotFoundError } from './NotFoundError';
 export { default as UnauthorizedError } from './UnauthorizedError';
-export { default as UnsuccessfulRequestError } from './NetworkRequestError';
+export { default as UnsuccessfulNetworkRequestError } from './UnsuccessfulNetworkRequestError';
