@@ -1,4 +1,4 @@
-import { Error } from '@noeldemartin/utils';
+import { JSError } from '@noeldemartin/utils';
 
 function errorMessage(
     documentUrl: string | null,
@@ -14,7 +14,7 @@ export enum SolidDocumentFormat {
     Turtle = 'Turtle',
 }
 
-export default class MalformedSolidDocumentError extends Error {
+export default class MalformedSolidDocumentError extends JSError {
 
     public readonly documentUrl: string | null;
     public readonly documentFormat: SolidDocumentFormat;

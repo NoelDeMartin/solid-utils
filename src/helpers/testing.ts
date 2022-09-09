@@ -1,4 +1,4 @@
-import { Error, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils';
+import { JSError, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils';
 import type { JsonLD } from '@/helpers/jsonld';
 import type { Quad, Quad_Object } from 'rdf-js';
 
@@ -9,7 +9,7 @@ const builtInPatterns: Record<string, string> = {
     '%uuid%': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
 };
 
-class ExpectedQuadAssertionError extends Error {
+class ExpectedQuadAssertionError extends JSError {
 
     constructor(public readonly expectedQuad: Quad) {
         super(`Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);

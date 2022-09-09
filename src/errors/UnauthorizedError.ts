@@ -1,4 +1,4 @@
-import { Error } from '@noeldemartin/utils';
+import { JSError } from '@noeldemartin/utils';
 
 function errorMessage(url: string, responseStatus?: number): string {
     const typeInfo = responseStatus === 403 ? ' (Forbidden)' : '';
@@ -6,7 +6,7 @@ function errorMessage(url: string, responseStatus?: number): string {
     return `Unauthorized${typeInfo}: ${url}`;
 }
 
-export default class UnauthorizedError extends Error {
+export default class UnauthorizedError extends JSError {
 
     public readonly url: string;
     public readonly responseStatus?: number;
