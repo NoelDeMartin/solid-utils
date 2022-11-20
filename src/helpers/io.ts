@@ -112,8 +112,13 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
 }
 
 export interface ParsingOptions {
-    documentUrl: string;
+    baseIRI: string;
     normalizeBlankNodes: boolean;
+}
+
+export interface RDFGraphData {
+    quads: Quad[];
+    containsRelativeIRIs: boolean;
 }
 
 export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
@@ -132,7 +137,7 @@ export async function createSolidDocument(url: string, body: string, fetch?: Fet
 
 export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<SolidDocument> {
     const { body: data, headers } = await fetchRawSolidDocument(url, fetch ?? window.fetch);
-    const statements = await turtleToQuads(data, { documentUrl: url });
+    const statements = await turtleToQuads(data, { baseIRI: url });
 
     return new SolidDocument(url, statements, headers);
 }
@@ -150,14 +155,14 @@ export async function fetchSolidDocumentIfFound(url: string, fetch?: Fetch): Pro
     }
 }
 
-export async function jsonldToQuads(jsonld: JsonLD): Promise<Quad[]> {
+export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Quad[]> {
     if (isJsonLDGraph(jsonld)) {
-        const graphQuads = await Promise.all(jsonld['@graph'].map(jsonldToQuads));
+        const graphQuads = await Promise.all(jsonld['@graph'].map(resource => jsonldToQuads(resource, baseIRI)));
 
         return graphQuads.flat();
     }
 
-    return toRDF(jsonld as JsonLdDocument) as Promise<Quad[]>;
+    return toRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>;
 }
 
 export function normalizeSparql(sparql: string): string {
@@ -171,6 +176,52 @@ export function normalizeSparql(sparql: string): string {
             return normalizedOperations.concat(`${operation.toUpperCase()} DATA {\n${normalizedQuads}\n}`);
         }, [] as string[])
         .join(' ;\n');
+}
+
+export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {}): Promise<RDFGraphData> {
+    const parserOptions = objectWithoutEmpty({ baseIRI: options.baseIRI });
+    const parser = new TurtleParser(parserOptions);
+    const data: RDFGraphData = {
+        quads: [],
+        containsRelativeIRIs: false,
+    };
+
+    return new Promise((resolve, reject) => {
+        const resolveRelativeIRI = parser._resolveRelativeIRI;
+
+        parser._resolveRelativeIRI = (...args) => {
+            data.containsRelativeIRIs = true;
+            parser._resolveRelativeIRI = resolveRelativeIRI;
+
+            return parser._resolveRelativeIRI(...args);
+        };
+
+        parser.parse(turtle, (error, quad) => {
+            if (error) {
+                reject(
+                    new MalformedSolidDocumentError(
+                        options.baseIRI ?? null,
+                        SolidDocumentFormat.Turtle,
+                        error.message,
+                    ),
+                );
+
+                return;
+            }
+
+            if (!quad) {
+                data.quads = options.normalizeBlankNodes
+                    ? normalizeBlankNodes(data.quads)
+                    : data.quads;
+
+                resolve(data);
+
+                return;
+            }
+
+            data.quads.push(quad);
+        });
+    });
 }
 
 export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
@@ -235,38 +286,13 @@ export function sparqlToQuadsSync(sparql: string, options: Partial<ParsingOption
 }
 
 export async function turtleToQuads(turtle: string, options: Partial<ParsingOptions> = {}): Promise<Quad[]> {
-    const parserOptions = objectWithoutEmpty({ baseIRI: options.documentUrl });
-    const parser = new TurtleParser(parserOptions);
-    const quads: Quad[] = [];
+    const { quads } = await parseTurtle(turtle, options);
 
-    return new Promise((resolve, reject) => {
-        parser.parse(turtle, (error, quad) => {
-            if (error) {
-                reject(
-                    new MalformedSolidDocumentError(
-                        options.documentUrl ?? null,
-                        SolidDocumentFormat.Turtle,
-                        error.message,
-                    ),
-                );
-                return;
-            }
-
-            if (!quad) {
-                options.normalizeBlankNodes
-                    ? resolve(normalizeBlankNodes(quads))
-                    : resolve(quads);
-
-                return;
-            }
-
-            quads.push(quad);
-        });
-    });
+    return quads;
 }
 
 export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOptions> = {}): Quad[] {
-    const parserOptions = objectWithoutEmpty({ baseIRI: options.documentUrl });
+    const parserOptions = objectWithoutEmpty({ baseIRI: options.baseIRI });
     const parser = new TurtleParser(parserOptions);
 
     try {
@@ -277,7 +303,7 @@ export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOption
             : quads;
     } catch (error) {
         throw new MalformedSolidDocumentError(
-            options.documentUrl ?? null,
+            options.baseIRI ?? null,
             SolidDocumentFormat.Turtle,
             (error as Error).message ?? '',
         );

@@ -35,7 +35,7 @@ describe('SolidDocument', () => {
                 <>
                     <http://purl.org/dc/terms/modified>
                     "2021-09-03T16:09:12.000Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-            `, { documentUrl: 'https://pod.example.org/my-document' }),
+            `, { baseIRI: 'https://pod.example.org/my-document' }),
             new Headers({ 'Last-Modified': 'invalid date' }),
         );
 
@@ -53,7 +53,7 @@ describe('SolidDocument', () => {
                 <./fallback-two>
                     <http://purl.org/dc/terms/created>
                     "2021-09-03T16:09:12.000Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-            `, { documentUrl: 'https://pod.example.org/my-document' }),
+            `, { baseIRI: 'https://pod.example.org/my-document' }),
             new Headers({ 'Last-Modified': 'invalid date' }),
         );
 
