@@ -1,10 +1,15 @@
 import md5 from 'md5';
+import {
+    TurtleParser,
+    TurtleWriter,
+    createBlankNode,
+    createQuad,
+    jsonLDFromRDF,
+    jsonLDToRDF,
+} from '@noeldemartin/solid-utils-external';
 import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
-import { BlankNode as N3BlankNode, Quad as N3Quad, Parser as TurtleParser, Writer as TurtleWriter } from 'n3';
-import { fromRDF, toRDF } from 'jsonld';
-import type { JsonLdDocument } from 'jsonld';
 import type { Quad } from 'rdf-js';
-import type { Term as N3Term } from 'n3';
+import type { JsonLdDocument, Term } from '@noeldemartin/solid-utils-external';
 
 import SolidDocument from '@/models/SolidDocument';
 
@@ -84,25 +89,25 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
 
         for (const index of quadIndexes) {
             const quad = normalizedQuads[index] as Quad;
-            const terms: Record<string, N3Term> = {
-                subject: quad.subject as N3Term,
-                object: quad.object as N3Term,
+            const terms: Record<string, Term> = {
+                subject: quad.subject as Term,
+                object: quad.object as Term,
             };
 
             for (const [termName, termValue] of Object.entries(terms)) {
                 if (termValue.termType !== 'BlankNode' || termValue.value !== originalId)
                     continue;
 
-                terms[termName] = new N3BlankNode(normalizedId);
+                terms[termName] = createBlankNode(normalizedId) as Term;
             }
 
             arrayReplace(
                 normalizedQuads,
                 quad,
-                new N3Quad(
-                    terms.subject as N3Term,
-                    quad.predicate as N3Term,
-                    terms.object as N3Term,
+                createQuad(
+                    terms.subject as Term,
+                    quad.predicate as Term,
+                    terms.object as Term,
                 ),
             );
         }
@@ -162,7 +167,7 @@ export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Q
         return graphQuads.flat();
     }
 
-    return toRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>;
+    return jsonLDToRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>;
 }
 
 export function normalizeSparql(sparql: string): string {
@@ -210,9 +215,9 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
             }
 
             if (!quad) {
-                data.quads = options.normalizeBlankNodes
-                    ? normalizeBlankNodes(data.quads)
-                    : data.quads;
+                // data.quads = options.normalizeBlankNodes
+                //     ? normalizeBlankNodes(data.quads)
+                //     : data.quads;
 
                 resolve(data);
 
@@ -225,7 +230,7 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
 }
 
 export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
-    const graph = await fromRDF(quads);
+    const graph = await jsonLDFromRDF(quads);
 
     return {
         '@graph': graph as JsonLDResource[],
