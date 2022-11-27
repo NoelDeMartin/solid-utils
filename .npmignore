@@ -3,6 +3,7 @@
 *.test.ts
 *.tgz
 api-extractor.json
+external
 coverage
 jest.config.js
 scripts

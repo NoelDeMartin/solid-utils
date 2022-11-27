@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "tmp"
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}
