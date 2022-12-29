@@ -8,7 +8,10 @@ export type JsonLD = Partial<{
 }> & { [k: string]: unknown };
 
 export type JsonLDResource = Omit<JsonLD, '@id'> & { '@id': string };
-export type JsonLDGraph = { '@graph': JsonLDResource[] };
+export type JsonLDGraph = {
+    '@context'?: Record<string, unknown>;
+    '@graph': JsonLDResource[];
+};
 
 export async function compactJsonLDGraph(jsonld: JsonLDGraph): Promise<JsonLDGraph> {
     const compactedJsonLD = await compactJsonLD(jsonld as JsonLdDocument, {});
