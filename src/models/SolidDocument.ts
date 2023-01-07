@@ -24,6 +24,11 @@ export default class SolidDocument extends SolidStore {
         this.headers = headers;
     }
 
+    public isACPResource(): boolean {
+        return !!this.headers.get('Link')
+            ?.match(/<http:\/\/www\.w3\.org\/ns\/solid\/acp#AccessControlResource>;[^,]+rel="type"/);
+    }
+
     public isPersonalProfile(): boolean {
         return !!this.statement(
             this.url,

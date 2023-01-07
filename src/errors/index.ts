@@ -3,3 +3,4 @@ export { default as NetworkRequestError } from './NetworkRequestError';
 export { default as NotFoundError } from './NotFoundError';
 export { default as UnauthorizedError } from './UnauthorizedError';
 export { default as UnsuccessfulNetworkRequestError } from './UnsuccessfulNetworkRequestError';
+export { default as UnsupportedAuthorizationProtocolError } from './UnsupportedAuthorizationProtocolError';

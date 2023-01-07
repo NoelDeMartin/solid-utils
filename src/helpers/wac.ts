@@ -1,5 +1,6 @@
 import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
+import UnsupportedAuthorizationProtocolError from '@/errors/UnsupportedAuthorizationProtocolError';
 import { fetchSolidDocumentIfFound } from '@/helpers/io';
 import type SolidDocument from '@/models/SolidDocument';
 import type { Fetch } from '@/helpers/io';
@@ -25,8 +26,17 @@ async function fetchEffectiveACL(
 ): Promise<SolidDocument> {
     aclResourceUrl = aclResourceUrl ?? await fetchACLResourceUrl(resourceUrl, fetch);
 
-    return await fetchSolidDocumentIfFound(aclResourceUrl ?? '', fetch)
-        ?? await fetchEffectiveACL(requireUrlParentDirectory(resourceUrl), fetch);
+    const aclDocument = await fetchSolidDocumentIfFound(aclResourceUrl ?? '', fetch);
+
+    if (!aclDocument) {
+        return fetchEffectiveACL(requireUrlParentDirectory(resourceUrl), fetch);
+    }
+
+    if (aclDocument.isACPResource()) {
+        throw new UnsupportedAuthorizationProtocolError(resourceUrl, 'ACP');
+    }
+
+    return aclDocument;
 }
 
 export async function fetchSolidDocumentACL(documentUrl: string, fetch: Fetch): Promise<{

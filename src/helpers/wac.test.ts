@@ -1,3 +1,4 @@
+import UnsupportedAuthorizationProtocolError from '@/errors/UnsupportedAuthorizationProtocolError';
 import type { Fetch } from '@/helpers/io';
 
 import { fetchSolidDocumentACL } from './wac';
@@ -46,6 +47,26 @@ describe('WAC helpers', () => {
         expect((fetch.mock.calls[0] as unknown as [RequestInfo, RequestInit])[1].method).toEqual('HEAD');
 
         expect((fetch.mock.calls[1] as unknown as [RequestInfo, RequestInit])[0]).toEqual(url);
+    });
+
+    it('fails with ACP resources', async () => {
+        // Arrange
+        const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
+        const responses = [
+            new Response('', { headers: { Link: '<my-favorite-movie.acl>;rel="acl"' } }),
+            new Response('', {
+                headers: {
+                    Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"',
+                },
+            }),
+        ];
+        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+
+        // Act
+        const promisedDocument = fetchSolidDocumentACL(documentUrl, fetch as unknown as Fetch);
+
+        // Assert
+        await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocolError);
     });
 
 });
