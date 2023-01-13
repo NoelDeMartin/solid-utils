@@ -26,10 +26,16 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fe
 }> {
     const store = new SolidStore(webIdDocument.getQuads());
     const documents: Record<string, SolidDocument | false | null> = { [webIdDocument.url]: webIdDocument };
-    const addReferencedDocumentUrls = (document: SolidDocument) => document
-        .statements(undefined, 'foaf:isPrimaryTopicOf')
-        .map(quad => quad.object.value)
-        .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
+    const addReferencedDocumentUrls = (document: SolidDocument) => {
+        document
+            .statements(undefined, 'foaf:isPrimaryTopicOf')
+            .map(quad => quad.object.value)
+            .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
+        document
+            .statements(undefined, 'foaf:primaryTopic')
+            .map(quad => quad.object.value)
+            .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
+    };
     const loadProfileDocuments = async (): Promise<void> => {
         for (const [url, document] of Object.entries(documents)) {
             if (document !== null) {
