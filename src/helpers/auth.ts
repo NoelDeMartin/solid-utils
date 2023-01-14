@@ -1,4 +1,4 @@
-import { objectWithoutEmpty, silenced, urlParentDirectory, urlRoot, urlRoute } from '@noeldemartin/utils';
+import { arrayUnique, objectWithoutEmpty, silenced, urlParentDirectory, urlRoot, urlRoute } from '@noeldemartin/utils';
 
 import SolidStore from '../models/SolidStore';
 import UnauthorizedError from '../errors/UnauthorizedError';
@@ -33,7 +33,7 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fe
             .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
         document
             .statements(undefined, 'foaf:primaryTopic')
-            .map(quad => quad.object.value)
+            .map(quad => quad.subject.value)
             .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
     };
     const loadProfileDocuments = async (): Promise<void> => {
@@ -84,8 +84,9 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
     const documentUrl = urlRoute(webId);
     const document = await fetchSolidDocument(documentUrl, fetch);
 
-    if (!document.isPersonalProfile() && !document.contains(webId, 'solid:oidcIssuer'))
+    if (!document.isPersonalProfile() && !document.contains(webId, 'solid:oidcIssuer')) {
         throw new Error(`${webId} is not a valid webId.`);
+    }
 
     const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, fetch);
     const storageUrls = store.statements(webId, 'pim:storage').map(storage => storage.object.value);
@@ -107,9 +108,9 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
 
     return {
         webId,
-        storageUrls,
         cloaked,
         writableProfileUrl,
+        storageUrls: arrayUnique(storageUrls),
         ...objectWithoutEmpty({
             name:
                 store.statement(webId, 'vcard:fn')?.object.value ??
