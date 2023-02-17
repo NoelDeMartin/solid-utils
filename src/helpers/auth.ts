@@ -125,8 +125,20 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
     };
 }
 
-export async function fetchLoginUserProfile(loginUrl: string, fetch?: Fetch): Promise<SolidUserProfile | null> {
-    const fetchProfile = silenced(url => fetchUserProfile(url, fetch));
+export interface FetchLoginUserProfileOptions {
+    required?: boolean;
+    fetch?: Fetch;
+}
+
+export async function fetchLoginUserProfile(
+    loginUrl: string,
+    options: FetchLoginUserProfileOptions = {},
+): Promise<SolidUserProfile | null> {
+    if (options.required) {
+        return fetchUserProfile(loginUrl, options.fetch);
+    }
+
+    const fetchProfile = silenced(url => fetchUserProfile(url, options.fetch));
 
     return await fetchProfile(loginUrl)
         ?? await fetchProfile(loginUrl.replace(/\/$/, '').concat('/profile/card#me'))

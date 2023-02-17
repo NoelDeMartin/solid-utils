@@ -1,5 +1,6 @@
 import { range } from '@noeldemartin/utils';
 
+import { MalformedSolidDocumentError } from '@/errors';
 import type { Fetch } from '@/helpers/io';
 
 import { fetchLoginUserProfile } from './auth';
@@ -31,10 +32,10 @@ describe('Auth helpers', () => {
                     solid:publicTypeIndex </settings/publicTypeIndex.ttl> .
             `, { headers: { 'WAC-Allow': 'user="read control write"' } }),
         ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, fetch as unknown as Fetch);
+        const profile = await fetchLoginUserProfile(webId, { fetch });
 
         // Assert
         expect(profile).toEqual({
@@ -72,10 +73,10 @@ describe('Auth helpers', () => {
             `),
             new Response('', { status: 401 }),
         ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, fetch as unknown as Fetch);
+        const profile = await fetchLoginUserProfile(webId, { fetch });
 
         // Assert
         expect(profile).toEqual({
@@ -122,10 +123,10 @@ describe('Auth helpers', () => {
                     foaf:primaryTopic  <${webId}> .
             `, { headers: { 'WAC-Allow': 'user="read control write"' } }),
         ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, fetch as unknown as Fetch);
+        const profile = await fetchLoginUserProfile(webId, { fetch });
 
         // Assert
         expect(profile).toEqual({
@@ -161,10 +162,10 @@ describe('Auth helpers', () => {
                     pim:storage <https://pods.use.id/storage-hash/>.
             `, { headers: { 'WAC-Allow': 'user="read"' } })),
         ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, fetch as unknown as Fetch);
+        const profile = await fetchLoginUserProfile(webId, { fetch });
 
         // Assert
         expect(profile).toEqual({
@@ -176,6 +177,23 @@ describe('Auth helpers', () => {
         });
 
         expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('throws errors reading required profiles', async () => {
+        // Arrange
+        const webId = 'https://pod.example.com/profile/card#me';
+        const responses = [
+            new Response('invalid turtle'),
+        ];
+        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+
+        // Act
+        const fetchProfile = fetchLoginUserProfile(webId, { fetch, required: true });
+
+        // Assert
+        await expect(fetchProfile).rejects.toBeInstanceOf(MalformedSolidDocumentError);
+
+        expect(fetch).toHaveBeenCalledTimes(1);
     });
 
 });
