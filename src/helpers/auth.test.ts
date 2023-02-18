@@ -1,7 +1,8 @@
 import { range } from '@noeldemartin/utils';
 
 import { MalformedSolidDocumentError } from '@/errors';
-import type { Fetch } from '@/helpers/io';
+
+import { mockFetch } from '@/testing/mocking';
 
 import { fetchLoginUserProfile } from './auth';
 
@@ -9,30 +10,29 @@ describe('Auth helpers', () => {
 
     it('reads NSS profiles', async () => {
         // Arrange
+        const fetch = mockFetch();
         const webId = 'https://alice.solidcommunity.net/profile/card#me';
-        const responses = [
-            new Response(`
-                @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-                @prefix solid: <http://www.w3.org/ns/solid/terms#>.
-                @prefix pim: <http://www.w3.org/ns/pim/space#>.
-                @prefix schema: <http://schema.org/>.
 
-                <>
-                    a foaf:PersonalProfileDocument ;
-                    foaf:maker <#me> ;
-                    foaf:primaryTopic <#me> .
+        fetch.mockResponse(`
+            @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+            @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+            @prefix pim: <http://www.w3.org/ns/pim/space#>.
+            @prefix schema: <http://schema.org/>.
 
-                <#me>
-                    a foaf:Person, schema:Person ;
-                    foaf:name "Alice" ;
-                    pim:preferencesFile </settings/prefs.ttl> ;
-                    pim:storage </> ;
-                    solid:oidcIssuer <https://solidcommunity.net> ;
-                    solid:privateTypeIndex </settings/privateTypeIndex.ttl> ;
-                    solid:publicTypeIndex </settings/publicTypeIndex.ttl> .
-            `, { headers: { 'WAC-Allow': 'user="read control write"' } }),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+            <>
+                a foaf:PersonalProfileDocument ;
+                foaf:maker <#me> ;
+                foaf:primaryTopic <#me> .
+
+            <#me>
+                a foaf:Person, schema:Person ;
+                foaf:name "Alice" ;
+                pim:preferencesFile </settings/prefs.ttl> ;
+                pim:storage </> ;
+                solid:oidcIssuer <https://solidcommunity.net> ;
+                solid:privateTypeIndex </settings/privateTypeIndex.ttl> ;
+                solid:publicTypeIndex </settings/publicTypeIndex.ttl> .
+        `, { 'WAC-Allow': 'user="read control write"' });
 
         // Act
         const profile = await fetchLoginUserProfile(webId, { fetch });
@@ -54,26 +54,25 @@ describe('Auth helpers', () => {
 
     it('reads ESS profiles (public)', async () => {
         // Arrange
+        const fetch = mockFetch();
         const webId = 'https://id.inrupt.com/alice';
-        const responses = [
-            // The first request returns a 303 to `${webId}?lookup`,
-            // but in order to simplify mocking requests we're assuming it doesn't.
-            new Response(`
-                @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-                @prefix solid: <http://www.w3.org/ns/solid/terms#>.
-                @prefix pim: <http://www.w3.org/ns/pim/space#>.
-                @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
-                <${webId}>
-                    a foaf:Agent ;
-                    rdfs:seeAlso <https://storage.inrupt.com/storage-hash/extendedProfile> ;
-                    pim:storage <https://storage.inrupt.com/storage-hash/> ;
-                    solid:oidcIssuer <https://login.inrupt.com> ;
-                    foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
-            `),
-            new Response('', { status: 401 }),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+        // The first request returns a 303 to `${webId}?lookup`,
+        // but in order to simplify mocking requests we're assuming it doesn't.
+        fetch.mockResponse(`
+            @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+            @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+            @prefix pim: <http://www.w3.org/ns/pim/space#>.
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+
+            <${webId}>
+                a foaf:Agent ;
+                rdfs:seeAlso <https://storage.inrupt.com/storage-hash/extendedProfile> ;
+                pim:storage <https://storage.inrupt.com/storage-hash/> ;
+                solid:oidcIssuer <https://login.inrupt.com> ;
+                foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
+        `);
+        fetch.mockResponse('', {}, 401);
 
         // Act
         const profile = await fetchLoginUserProfile(webId, { fetch });
@@ -92,38 +91,37 @@ describe('Auth helpers', () => {
 
     it('reads ESS profiles (authenticated)', async () => {
         // Arrange
+        const fetch = mockFetch();
         const webId = 'https://id.inrupt.com/alice';
-        const responses = [
-            // The first request returns a 303 to `${webId}?lookup`,
-            // but in order to simplify mocking requests we're assuming it doesn't.
-            new Response(`
-                @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-                @prefix solid: <http://www.w3.org/ns/solid/terms#>.
-                @prefix pim: <http://www.w3.org/ns/pim/space#>.
-                @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
-                <${webId}>
-                    a foaf:Agent ;
-                    rdfs:seeAlso <https://storage.inrupt.com/storage-hash/extendedProfile> ;
-                    pim:storage <https://storage.inrupt.com/storage-hash/> ;
-                    solid:oidcIssuer <https://login.inrupt.com> ;
-                    foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
-            `),
-            new Response(`
-                @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
-                @prefix schema:   <http://schema.org/> .
+        // The first request returns a 303 to `${webId}?lookup`,
+        // but in order to simplify mocking requests we're assuming it doesn't.
+        fetch.mockResponse(`
+            @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+            @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+            @prefix pim: <http://www.w3.org/ns/pim/space#>.
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
-                <${webId}>
-                    a foaf:Person, schema:Person ;
-                    foaf:name "Alice" .
+            <${webId}>
+                a foaf:Agent ;
+                rdfs:seeAlso <https://storage.inrupt.com/storage-hash/extendedProfile> ;
+                pim:storage <https://storage.inrupt.com/storage-hash/> ;
+                solid:oidcIssuer <https://login.inrupt.com> ;
+                foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
+        `);
+        fetch.mockResponse(`
+            @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+            @prefix schema:   <http://schema.org/> .
 
-                <https://storage.inrupt.com/storage-hash/extendedProfile>
-                    a foaf:Document ;
-                    foaf:maker <${webId}> ;
-                    foaf:primaryTopic  <${webId}> .
-            `, { headers: { 'WAC-Allow': 'user="read control write"' } }),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+            <${webId}>
+                a foaf:Person, schema:Person ;
+                foaf:name "Alice" .
+
+            <https://storage.inrupt.com/storage-hash/extendedProfile>
+                a foaf:Document ;
+                foaf:maker <${webId}> ;
+                foaf:primaryTopic  <${webId}> .
+        `, { 'WAC-Allow': 'user="read control write"' });
 
         // Act
         const profile = await fetchLoginUserProfile(webId, { fetch });
@@ -143,11 +141,14 @@ describe('Auth helpers', () => {
 
     it('reads use.id profiles', async () => {
         // Arrange
+        const fetch = mockFetch();
         const webId = 'https://use.id/alice';
-        const responses = [
-            // The first request returns a 303 to `${webId}/profile`,
-            // but in order to simplify mocking requests we're assuming it doesn't.
-            ...range(2).map(() => new Response(`
+
+
+        // The first request returns a 303 to `${webId}/profile`,
+        // but in order to simplify mocking requests we're assuming it doesn't.
+        range(2).forEach(() => {
+            fetch.mockResponse(`
                 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
                 @prefix solid: <http://www.w3.org/ns/solid/terms#>.
                 @prefix pim: <http://www.w3.org/ns/pim/space#>.
@@ -160,9 +161,8 @@ describe('Auth helpers', () => {
                 <${webId}>
                     solid:oidcIssuer <https://idp.use.id/>;
                     pim:storage <https://pods.use.id/storage-hash/>.
-            `, { headers: { 'WAC-Allow': 'user="read"' } })),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+            `, { 'WAC-Allow': 'user="read"' });
+        });
 
         // Act
         const profile = await fetchLoginUserProfile(webId, { fetch });
@@ -181,11 +181,10 @@ describe('Auth helpers', () => {
 
     it('throws errors reading required profiles', async () => {
         // Arrange
+        const fetch = mockFetch();
         const webId = 'https://pod.example.com/profile/card#me';
-        const responses = [
-            new Response('invalid turtle'),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift())) as unknown as Fetch;
+
+        fetch.mockResponse('invalid turtle');
 
         // Act
         const fetchProfile = fetchLoginUserProfile(webId, { fetch, required: true });

@@ -1,27 +1,28 @@
 import UnsupportedAuthorizationProtocolError from '@/errors/UnsupportedAuthorizationProtocolError';
 import type { Fetch } from '@/helpers/io';
 
+import { mockFetch } from '@/testing/mocking';
+
 import { fetchSolidDocumentACL } from './wac';
 
 describe('WAC helpers', () => {
 
     it('resolves relative ACL urls', async () => {
         // Arrange
+        const fetch = mockFetch();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
-        const responses = [
-            new Response('', { headers: { Link: '<my-favorite-movie.acl>;rel="acl"' } }),
-            new Response(`
-                @prefix acl: <http://www.w3.org/ns/auth/acl#>.
-                @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
-                <#owner>
-                    a acl:Authorization;
-                    acl:agent <https://example.com/alice/profile/card#me>;
-                    acl:accessTo <./my-favorite-movie> ;
-                    acl:mode acl:Read, acl:Write, acl:Control .
-            `),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+        fetch.mockResponse('', { Link: '<my-favorite-movie.acl>;rel="acl"' });
+        fetch.mockResponse(`
+            @prefix acl: <http://www.w3.org/ns/auth/acl#>.
+            @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+            <#owner>
+                a acl:Authorization;
+                acl:agent <https://example.com/alice/profile/card#me>;
+                acl:accessTo <./my-favorite-movie> ;
+                acl:mode acl:Read, acl:Write, acl:Control .
+        `);
 
         // Act
         const {
@@ -51,16 +52,11 @@ describe('WAC helpers', () => {
 
     it('fails with ACP resources', async () => {
         // Arrange
+        const fetch = mockFetch();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
-        const responses = [
-            new Response('', { headers: { Link: '<my-favorite-movie.acl>;rel="acl"' } }),
-            new Response('', {
-                headers: {
-                    Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"',
-                },
-            }),
-        ];
-        const fetch = jest.fn(() => Promise.resolve(responses.shift()));
+
+        fetch.mockResponse('', { Link: '<my-favorite-movie.acl>;rel="acl"' });
+        fetch.mockResponse('', { Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"' });
 
         // Act
         const promisedDocument = fetchSolidDocumentACL(documentUrl, fetch as unknown as Fetch);
