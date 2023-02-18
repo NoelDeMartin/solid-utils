@@ -30,8 +30,9 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
+    "@faker-js/faker": "^7.6.0",
     "@noeldemartin/solid-utils-external": "^0.1.0",
-    "@noeldemartin/utils": "^0.3.0",
+    "@noeldemartin/utils": "^0.3.0-next.c7f110d1fdad759f6837c7115e8b19ecc75f6e9a",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",
