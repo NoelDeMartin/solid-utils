@@ -1,11 +1,12 @@
 {
     "name": "@noeldemartin/solid-utils-external",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "External @noeldemartin/solid-utils libraries bundle",
     "main": "dist/solid-utils-external.cjs.js",
     "module": "dist/solid-utils-external.umd.js",
     "browser": "dist/solid-utils-external.umd.js",
     "types": "dist/solid-utils-external.d.ts",
+    "sideEffect": false,
     "scripts": {
         "build": "npm run build:clear && npm run build:ts && npm run build:dts && npm run build:cjs && npm run build:js",
         "build:clear": "rm tmp -rf && rm dist -rf",
