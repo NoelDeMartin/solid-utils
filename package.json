@@ -6,6 +6,7 @@
   "module": "dist/noeldemartin-solid-utils.esm.js",
   "browser": "dist/noeldemartin-solid-utils.umd.js",
   "types": "dist/noeldemartin-solid-utils.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "rm dist -rf && npm run build:js && npm run build:types",
     "build:js": "noeldemartin-build-javascript",
@@ -30,9 +31,9 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
-    "@faker-js/faker": "^7.6.0",
-    "@noeldemartin/solid-utils-external": "^0.1.0",
-    "@noeldemartin/utils": "^0.3.0-next.c7f110d1fdad759f6837c7115e8b19ecc75f6e9a",
+    "@noeldemartin/faker": "^7.6.0",
+    "@noeldemartin/solid-utils-external": "^0.1.1",
+    "@noeldemartin/utils": "^0.3.0-next.32ce15e2a6d00e46d31ca0e263876f6cf4acbc2a",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",

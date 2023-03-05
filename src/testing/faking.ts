@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@noeldemartin/faker';
 import { stringToSlug } from '@noeldemartin/utils';
 
 export interface ContainerOptions {
