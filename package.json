@@ -1,6 +1,6 @@
 {
   "name": "@noeldemartin/solid-utils",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "My JavaScript utilities for Solid",
   "main": "dist/noeldemartin-solid-utils.cjs.js",
   "module": "dist/noeldemartin-solid-utils.esm.js",
@@ -33,7 +33,7 @@
     "@babel/runtime": "^7.14.0",
     "@noeldemartin/faker": "^7.6.0",
     "@noeldemartin/solid-utils-external": "^0.1.1",
-    "@noeldemartin/utils": "^0.3.0-next.32ce15e2a6d00e46d31ca0e263876f6cf4acbc2a",
+    "@noeldemartin/utils": "^0.4.0",
     "@types/rdf-js": "^4.0.1",
     "core-js": "^3.12.1",
     "jest-diff": "^26.6.2",
