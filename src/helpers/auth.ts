@@ -9,7 +9,7 @@ import type { Fetch } from './io';
 
 export interface SolidUserProfile {
     webId: string;
-    storageUrls: string[];
+    storageUrls: [string, ...string[]];
     cloaked: boolean;
     writableProfileUrl: string | null;
     name?: string;
@@ -106,11 +106,15 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
         parentUrl = urlParentDirectory(parentUrl);
     }
 
+    if (storageUrls.length === 0) {
+        throw new Error(`Could not find any storage for ${webId}.`);
+    }
+
     return {
         webId,
         cloaked,
         writableProfileUrl,
-        storageUrls: arrayUnique(storageUrls),
+        storageUrls: arrayUnique(storageUrls) as [string, ...string[]],
         ...objectWithoutEmpty({
             name:
                 store.statement(webId, 'vcard:fn')?.object.value ??
