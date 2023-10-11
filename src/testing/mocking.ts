@@ -1,5 +1,5 @@
 import { fail } from '@noeldemartin/utils';
-import type { GetClosureArgs, GetClosureResult } from '@noeldemartin/utils';
+import type { GetClosureArgs } from '@noeldemartin/utils';
 
 import type { Fetch } from '@/helpers/io';
 
@@ -10,9 +10,8 @@ export interface FetchMockMethods {
     mockNotFoundResponse(): void;
 }
 
-export type FetchMock = jest.Mock<GetClosureResult<Fetch>, GetClosureArgs<Fetch>> & Fetch & FetchMockMethods;
-
-export function mockFetch(): FetchMock {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function mockFetch<T = any>(): T {
     const responses: ResponseStub[] = [];
     const methods: FetchMockMethods = {
         mockResponse(body, headers, status) {
@@ -30,5 +29,5 @@ export function mockFetch(): FetchMock {
 
     Object.assign(fetchMock, methods);
 
-    return fetchMock as FetchMock;
+    return fetchMock as unknown as T;
 }
