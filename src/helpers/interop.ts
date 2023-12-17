@@ -44,12 +44,15 @@ async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetc
     ]);
 
     if (type === 'public') {
-        // TODO Implement updating ACLs for the listing itself to public
+        // TODO This is currently implemented in soukai-solid.
     }
 
     return typeIndexUrl;
 }
 
+/**
+ * @deprecated Use soukai-solid instead
+ */
 async function findRegistrations(
     typeIndexUrl: string,
     type: string | string[],
@@ -70,14 +73,23 @@ async function findRegistrations(
     ).flat();
 }
 
+/**
+ * @deprecated Use soukai-solid instead
+ */
 export async function createPublicTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
     return createTypeIndex(user, 'public', fetch);
 }
 
+/**
+ * @deprecated Use soukai-solid instead
+ */
 export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
     return createTypeIndex(user, 'private', fetch);
 }
 
+/**
+ * @deprecated Use soukai-solid instead
+ */
 export async function findContainerRegistrations(
     typeIndexUrl: string,
     type: string | string[],
@@ -86,6 +98,9 @@ export async function findContainerRegistrations(
     return findRegistrations(typeIndexUrl, type, 'solid:instanceContainer', fetch);
 }
 
+/**
+ * @deprecated Use soukai-solid instead
+ */
 export async function findInstanceRegistrations(
     typeIndexUrl: string,
     type: string | string[],
