@@ -144,7 +144,6 @@ describe('Auth helpers', () => {
         const fetch = mockFetch();
         const webId = 'https://use.id/alice';
 
-
         // The first request returns a 303 to `${webId}/profile`,
         // but in order to simplify mocking requests we're assuming it doesn't.
         range(2).forEach(() => {
