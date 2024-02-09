@@ -16,9 +16,11 @@ export interface ResourceOptions extends DocumentOptions {
 }
 
 export function fakeContainerUrl(options: Partial<ContainerOptions> = {}): string {
+    const containerSlug = stringToSlug(faker.random.word());
     const baseUrl = options.baseUrl ?? faker.internet.url();
+    const parentContainerUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 
-    return baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+    return parentContainerUrl + containerSlug + '/';
 }
 
 export function fakeDocumentUrl(options: Partial<DocumentOptions> = {}): string {
