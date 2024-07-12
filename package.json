@@ -31,7 +31,6 @@
   "homepage": "https://github.com/noeldemartin/solid-utils",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
-    "@noeldemartin/faker": "^7.6.0",
     "@noeldemartin/solid-utils-external": "^0.1.1",
     "@noeldemartin/utils": "^0.5.1",
     "@rdfjs/types": "^1.1.0",
