@@ -34,7 +34,7 @@
     "@noeldemartin/faker": "^7.6.0",
     "@noeldemartin/solid-utils-external": "^0.1.1",
     "@noeldemartin/utils": "^0.5.1",
-    "@types/rdf-js": "^4.0.1",
+    "@rdfjs/types": "^1.1.0",
     "core-js": "^3.12.1",
     "md5": "^2.3.0"
   },
