@@ -38,10 +38,8 @@ async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetc
         }
     `;
 
-    await Promise.all([
-        createSolidDocument(typeIndexUrl, typeIndexBody, fetch),
-        updateSolidDocument(user.writableProfileUrl, profileUpdateBody, fetch),
-    ]);
+    await createSolidDocument(typeIndexUrl, typeIndexBody, fetch);
+    await updateSolidDocument(user.writableProfileUrl, profileUpdateBody, fetch);
 
     if (type === 'public') {
         // TODO This is currently implemented in soukai-solid.
