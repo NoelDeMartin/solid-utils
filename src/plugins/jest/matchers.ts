@@ -1,5 +1,5 @@
-import { normalizeSparql } from '@/helpers/io';
-import { jsonldEquals, sparqlEquals } from '@/helpers/testing';
+import { normalizeSparql, normalizeTurtle } from '@/helpers/io';
+import { jsonldEquals, sparqlEquals, turtleEquals } from '@/helpers/testing';
 import type { EqualityResult } from '@/helpers/testing';
 
 interface FormatResultOptions {
@@ -48,6 +48,16 @@ const matchers: jest.ExpectExtendMap = {
             hint: 'toEqualSparql',
             expected: normalizeSparql(expected),
             received: normalizeSparql(received),
+        });
+    },
+    toEqualTurtle(received, expected) {
+        const result = turtleEquals(expected, received);
+
+        return formatResult(result, {
+            context: this,
+            hint: 'toEqualTurtle',
+            expected: normalizeTurtle(expected),
+            received: normalizeTurtle(received),
         });
     },
 };
