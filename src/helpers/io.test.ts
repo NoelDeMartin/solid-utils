@@ -30,6 +30,36 @@ describe('IO', () => {
         expect(quads[1].object.value).toEqual('Spirited Away');
     });
 
+    it('parses jsonld with anonymous subjects', async () => {
+        // Arrange
+        const jsonld = {
+            '@context': { '@vocab': 'https://schema.org/' },
+            '@id': '#it',
+            '@type': 'Movie',
+            'name': 'Spirited Away',
+        };
+
+        // Act
+        const quads = await jsonldToQuads(jsonld) as [Quad, Quad];
+
+        // Assert
+        expect(quads).toHaveLength(2);
+
+        expect(quads[0].subject.termType).toEqual('NamedNode');
+        expect(quads[0].subject.value).toEqual('#it');
+        expect(quads[0].predicate.termType).toEqual('NamedNode');
+        expect(quads[0].predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+        expect(quads[0].object.termType).toEqual('NamedNode');
+        expect(quads[0].object.value).toEqual('https://schema.org/Movie');
+
+        expect(quads[1].subject.termType).toEqual('NamedNode');
+        expect(quads[1].subject.value).toEqual('#it');
+        expect(quads[1].predicate.termType).toEqual('NamedNode');
+        expect(quads[1].predicate.value).toEqual('https://schema.org/name');
+        expect(quads[1].object.termType).toEqual('Literal');
+        expect(quads[1].object.value).toEqual('Spirited Away');
+    });
+
     it('parses jsonld graphs', async () => {
         // Arrange
         const jsonld = {

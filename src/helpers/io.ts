@@ -25,6 +25,9 @@ export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
+const ANONYMOUS_PREFIX = 'anonymous://';
+const ANONYMOUS_PREFIX_LENGTH = ANONYMOUS_PREFIX.length;
+
 async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<{ body: string; headers: Headers }> {
     const options = {
         headers: { Accept: 'text/turtle' },
@@ -116,6 +119,28 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
     return normalizedQuads;
 }
 
+function normalizeQuads(quads: Quad[]): string {
+    return quads.map(quad => '    ' + quadToTurtle(quad)).sort().join('\n');
+}
+
+function preprocessSubjects(jsonld: JsonLD): void {
+    if (!jsonld['@id']?.startsWith('#')) {
+        return;
+    }
+
+    jsonld['@id'] = ANONYMOUS_PREFIX + jsonld['@id'];
+}
+
+function postprocessSubjects(quads: Quad[]): void {
+    for (const quad of quads) {
+        if (!quad.subject.value.startsWith(ANONYMOUS_PREFIX)) {
+            continue;
+        }
+
+        quad.subject.value = quad.subject.value.slice(ANONYMOUS_PREFIX_LENGTH);
+    }
+}
+
 export interface ParsingOptions {
     baseIRI: string;
     normalizeBlankNodes: boolean;
@@ -125,6 +150,7 @@ export interface RDFGraphData {
     quads: Quad[];
     containsRelativeIRIs: boolean;
 }
+
 
 export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
     fetch = fetch ?? window.fetch.bind(window);
@@ -167,7 +193,13 @@ export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Q
         return graphQuads.flat();
     }
 
-    return jsonLDToRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>;
+    preprocessSubjects(jsonld);
+
+    const quads = await (jsonLDToRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
+
+    postprocessSubjects(quads);
+
+    return quads;
 }
 
 export function normalizeSparql(sparql: string): string {
@@ -176,11 +208,17 @@ export function normalizeSparql(sparql: string): string {
     return Object
         .entries(quads)
         .reduce((normalizedOperations, [operation, quads]) => {
-            const normalizedQuads = quads.map(quad => '    ' + quadToTurtle(quad)).sort().join('\n');
+            const normalizedQuads = normalizeQuads(quads);
 
             return normalizedOperations.concat(`${operation.toUpperCase()} DATA {\n${normalizedQuads}\n}`);
         }, [] as string[])
         .join(' ;\n');
+}
+
+export function normalizeTurtle(sparql: string): string {
+    const quads = turtleToQuadsSync(sparql);
+
+    return normalizeQuads(quads);
 }
 
 export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {}): Promise<RDFGraphData> {
