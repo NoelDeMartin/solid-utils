@@ -80,22 +80,22 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fe
     };
 }
 
-async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUserProfile> {
+async function fetchUserProfile(webId: string, options: FetchUserProfileOptions = {}): Promise<SolidUserProfile> {
     const documentUrl = urlRoute(webId);
-    const document = await fetchSolidDocument(documentUrl, fetch);
+    const document = await fetchSolidDocument(documentUrl, options.fetch);
 
     if (!document.isPersonalProfile() && !document.contains(webId, 'solid:oidcIssuer')) {
         throw new Error(`${webId} is not a valid webId.`);
     }
 
-    const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, fetch);
+    const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, options.fetch);
     const storageUrls = store.statements(webId, 'pim:storage').map(storage => storage.object.value);
     const publicTypeIndex = store.statement(webId, 'solid:publicTypeIndex');
     const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
 
     let parentUrl = urlParentDirectory(documentUrl);
     while (parentUrl && storageUrls.length === 0) {
-        const parentDocument = await silenced(fetchSolidDocument(parentUrl, fetch));
+        const parentDocument = await silenced(fetchSolidDocument(parentUrl, options.fetch));
 
         if (parentDocument?.isStorage()) {
             storageUrls.push(parentUrl);
@@ -109,6 +109,8 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
     if (storageUrls.length === 0) {
         throw new Error(`Could not find any storage for ${webId}.`);
     }
+
+    await options.onLoaded?.(new SolidStore(store.statements(webId)));
 
     return {
         webId,
@@ -129,9 +131,13 @@ async function fetchUserProfile(webId: string, fetch?: Fetch): Promise<SolidUser
     };
 }
 
-export interface FetchLoginUserProfileOptions {
-    required?: boolean;
+export interface FetchUserProfileOptions {
     fetch?: Fetch;
+    onLoaded?(store: SolidStore): Promise<unknown> | unknown;
+}
+
+export interface FetchLoginUserProfileOptions extends FetchUserProfileOptions {
+    required?: boolean;
 }
 
 export async function fetchLoginUserProfile(
@@ -139,10 +145,10 @@ export async function fetchLoginUserProfile(
     options: FetchLoginUserProfileOptions = {},
 ): Promise<SolidUserProfile | null> {
     if (options.required) {
-        return fetchUserProfile(loginUrl, options.fetch);
+        return fetchUserProfile(loginUrl, options);
     }
 
-    const fetchProfile = silenced(url => fetchUserProfile(url, options.fetch));
+    const fetchProfile = silenced(url => fetchUserProfile(url, options));
 
     return await fetchProfile(loginUrl)
         ?? await fetchProfile(loginUrl.replace(/\/$/, '').concat('/profile/card#me'))
