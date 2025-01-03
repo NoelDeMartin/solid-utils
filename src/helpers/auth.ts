@@ -5,7 +5,7 @@ import UnauthorizedError from '../errors/UnauthorizedError';
 import type SolidDocument from '../models/SolidDocument';
 
 import { fetchSolidDocument } from './io';
-import type { Fetch } from './io';
+import type { Fetch, FetchSolidDocumentOptions } from './io';
 
 export interface SolidUserProfile {
     webId: string;
@@ -19,7 +19,7 @@ export interface SolidUserProfile {
     privateTypeIndexUrl?: string;
 }
 
-async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fetch): Promise<{
+async function fetchExtendedUserProfile(webIdDocument: SolidDocument, options?: FetchSolidDocumentOptions): Promise<{
     store: SolidStore;
     cloaked: boolean;
     writableProfileUrl: string | null;
@@ -43,7 +43,7 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fe
             }
 
             try {
-                const document = await fetchSolidDocument(url, fetch);
+                const document = await fetchSolidDocument(url, options);
 
                 documents[url] = document;
                 store.addQuads(document.getQuads());
@@ -81,21 +81,29 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, fetch?: Fe
 }
 
 async function fetchUserProfile(webId: string, options: FetchUserProfileOptions = {}): Promise<SolidUserProfile> {
+    const requestOptions: FetchSolidDocumentOptions = {
+        fetch: options.fetch,
+
+        // Needed for CSS v7.1.3.
+        // See https://github.com/CommunitySolidServer/CommunitySolidServer/issues/1972
+        cache: 'no-store',
+    };
+
     const documentUrl = urlRoute(webId);
-    const document = await fetchSolidDocument(documentUrl, options.fetch);
+    const document = await fetchSolidDocument(documentUrl, requestOptions);
 
     if (!document.isPersonalProfile() && !document.contains(webId, 'solid:oidcIssuer')) {
         throw new Error(`${webId} is not a valid webId.`);
     }
 
-    const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, options.fetch);
+    const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, options);
     const storageUrls = store.statements(webId, 'pim:storage').map(storage => storage.object.value);
     const publicTypeIndex = store.statement(webId, 'solid:publicTypeIndex');
     const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
 
     let parentUrl = urlParentDirectory(documentUrl);
     while (parentUrl && storageUrls.length === 0) {
-        const parentDocument = await silenced(fetchSolidDocument(parentUrl, options.fetch));
+        const parentDocument = await silenced(fetchSolidDocument(parentUrl, requestOptions));
 
         if (parentDocument?.isStorage()) {
             storageUrls.push(parentUrl);

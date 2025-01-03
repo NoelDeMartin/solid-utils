@@ -26,7 +26,7 @@ async function fetchEffectiveACL(
 ): Promise<SolidDocument> {
     aclResourceUrl = aclResourceUrl ?? await fetchACLResourceUrl(resourceUrl, fetch);
 
-    const aclDocument = await fetchSolidDocumentIfFound(aclResourceUrl ?? '', fetch);
+    const aclDocument = await fetchSolidDocumentIfFound(aclResourceUrl ?? '', { fetch });
 
     if (!aclDocument) {
         return fetchEffectiveACL(requireUrlParentDirectory(resourceUrl), fetch);

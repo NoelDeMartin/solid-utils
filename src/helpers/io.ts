@@ -28,13 +28,21 @@ export declare type Fetch = TypedFetch | AnyFetch;
 const ANONYMOUS_PREFIX = 'anonymous://';
 const ANONYMOUS_PREFIX_LENGTH = ANONYMOUS_PREFIX.length;
 
-async function fetchRawSolidDocument(url: string, fetch: Fetch): Promise<{ body: string; headers: Headers }> {
-    const options = {
+async function fetchRawSolidDocument(
+    url: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<{ body: string; headers: Headers }> {
+    const requestOptions: RequestInit = {
         headers: { Accept: 'text/turtle' },
     };
 
+    if (options?.cache) {
+        requestOptions.cache = options.cache;
+    }
+
     try {
-        const response = await fetch(url, options);
+        const fetch = options?.fetch ?? window.fetch;
+        const response = await fetch(url, requestOptions);
 
         if (response.status === 404)
             throw new NotFoundError(url);
@@ -141,6 +149,11 @@ function postprocessSubjects(quads: Quad[]): void {
     }
 }
 
+export interface FetchSolidDocumentOptions {
+    fetch?: Fetch;
+    cache?: RequestCache;
+}
+
 export interface ParsingOptions {
     baseIRI: string;
     normalizeBlankNodes: boolean;
@@ -150,7 +163,6 @@ export interface RDFGraphData {
     quads: Quad[];
     containsRelativeIRIs: boolean;
 }
-
 
 export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
     fetch = fetch ?? window.fetch.bind(window);
@@ -166,16 +178,19 @@ export async function createSolidDocument(url: string, body: string, fetch?: Fet
     return new SolidDocument(url, statements, new Headers({}));
 }
 
-export async function fetchSolidDocument(url: string, fetch?: Fetch): Promise<SolidDocument> {
-    const { body: data, headers } = await fetchRawSolidDocument(url, fetch ?? window.fetch);
+export async function fetchSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidDocument> {
+    const { body: data, headers } = await fetchRawSolidDocument(url, options);
     const statements = await turtleToQuads(data, { baseIRI: url });
 
     return new SolidDocument(url, statements, headers);
 }
 
-export async function fetchSolidDocumentIfFound(url: string, fetch?: Fetch): Promise<SolidDocument | null> {
+export async function fetchSolidDocumentIfFound(
+    url: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<SolidDocument | null> {
     try {
-        const document = await fetchSolidDocument(url, fetch);
+        const document = await fetchSolidDocument(url, options);
 
         return document;
     } catch (error) {
@@ -287,9 +302,9 @@ export function quadToTurtle(quad: Quad): string {
     return writer.quadsToString([quad]).slice(0, -1);
 }
 
-export async function solidDocumentExists(url: string, fetch?: Fetch): Promise<boolean> {
+export async function solidDocumentExists(url: string, options?: FetchSolidDocumentOptions): Promise<boolean> {
     try {
-        const document = await fetchSolidDocument(url, fetch);
+        const document = await fetchSolidDocument(url, options);
 
         return !document.isEmpty();
     } catch (error) {

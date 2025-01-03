@@ -12,7 +12,7 @@ async function mintTypeIndexUrl(user: SolidUserProfile, type: TypeIndexType, fet
     const storageUrl = user.storageUrls[0];
     const typeIndexUrl = `${storageUrl}settings/${type}TypeIndex`;
 
-    return await solidDocumentExists(typeIndexUrl, fetch)
+    return await solidDocumentExists(typeIndexUrl, { fetch })
         ? `${storageUrl}settings/${type}TypeIndex-${uuid()}`
         : typeIndexUrl;
 }
@@ -57,7 +57,7 @@ async function findRegistrations(
     predicate: string,
     fetch?: Fetch,
 ): Promise<string[]> {
-    const typeIndex = await fetchSolidDocument(typeIndexUrl, fetch);
+    const typeIndex = await fetchSolidDocument(typeIndexUrl, { fetch });
     const types = Array.isArray(type) ? type : [type];
 
     return types.map(
