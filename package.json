@@ -1,6 +1,6 @@
 {
   "name": "@noeldemartin/solid-utils",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "My JavaScript utilities for Solid",
   "main": "dist/noeldemartin-solid-utils.cjs.js",
   "module": "dist/noeldemartin-solid-utils.esm.js",
@@ -32,7 +32,7 @@
   "dependencies": {
     "@babel/runtime": "^7.14.0",
     "@noeldemartin/solid-utils-external": "^0.1.1",
-    "@noeldemartin/utils": "^0.5.1",
+    "@noeldemartin/utils": "^0.6.0",
     "@rdfjs/types": "^1.1.0",
     "core-js": "^3.12.1",
     "md5": "^2.3.0"
