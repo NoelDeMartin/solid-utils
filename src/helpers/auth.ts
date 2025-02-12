@@ -118,7 +118,7 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
         throw new Error(`Could not find any storage for ${webId}.`);
     }
 
-    await options.onLoaded?.(new SolidStore(store.statements(webId)));
+    await options.onLoaded?.(store);
 
     return {
         webId,

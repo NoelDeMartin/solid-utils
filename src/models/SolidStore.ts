@@ -1,8 +1,10 @@
-import type { Quad } from 'rdf-js';
+import type { BlankNode, Literal, NamedNode, Quad, Variable } from 'rdf-js';
 
 import { expandIRI } from '@/helpers/vocabs';
 
 import SolidThing from './SolidThing';
+
+export type Term = NamedNode | Literal | BlankNode | Quad | Variable;
 
 export default class SolidStore {
 
@@ -24,21 +26,21 @@ export default class SolidStore {
         this.quads.push(...quads);
     }
 
-    public statements(subject?: string, predicate?: string, object?: string): Quad[] {
+    public statements(subject?: Term | string, predicate?: Term | string, object?: Term | string): Quad[] {
         return this.quads.filter(
             statement =>
-                (!object || statement.object.value === this.expandIRI(object)) &&
-                (!subject || statement.subject.value === this.expandIRI(subject)) &&
-                (!predicate || statement.predicate.value === this.expandIRI(predicate)),
+                (!object || this.termMatches(statement.object, object)) &&
+                (!subject || this.termMatches(statement.subject, subject)) &&
+                (!predicate || this.termMatches(statement.predicate, predicate)),
         );
     }
 
-    public statement(subject?: string, predicate?: string, object?: string): Quad | null {
+    public statement(subject?: Term | string, predicate?: Term | string, object?: Term | string): Quad | null {
         const statement = this.quads.find(
             statement =>
-                (!object || statement.object.value === this.expandIRI(object)) &&
-                (!subject || statement.subject.value === this.expandIRI(subject)) &&
-                (!predicate || statement.predicate.value === this.expandIRI(predicate)),
+                (!object || this.termMatches(statement.object, object)) &&
+                (!subject || this.termMatches(statement.subject, subject)) &&
+                (!predicate || this.termMatches(statement.predicate, predicate)),
         );
 
         return statement ?? null;
@@ -56,6 +58,14 @@ export default class SolidStore {
 
     protected expandIRI(iri: string): string {
         return expandIRI(iri);
+    }
+
+    protected termMatches(term: Term, value: Term | string): boolean {
+        if (typeof value === 'string') {
+            return this.expandIRI(value) === term.value;
+        }
+
+        return term.termType === term.termType && term.value === value.value;
     }
 
 }
