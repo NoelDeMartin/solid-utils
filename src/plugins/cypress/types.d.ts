@@ -8,6 +8,7 @@ declare global {
         interface Chainer<Subject> {
             (chainer: 'be.sparql', update: string): Cypress.Chainable<Subject>;
             (chainer: 'be.turtle', graph: string): Cypress.Chainable<Subject>;
+            (chainer: 'be.equalityResult'): Cypress.Chainable<Subject>;
         }
 
     }
