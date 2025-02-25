@@ -2,7 +2,7 @@ import { JSError, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils'
 import type { JsonLD } from '@/helpers/jsonld';
 import type { Quad, Quad_Object } from 'rdf-js';
 
-import { jsonldToQuads, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import { jsonldToQuadsSync, quadToTurtle, quadsToTurtle, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 
 let patternsRegExpsIndex: Record<string, RegExp> = {};
 const builtInPatterns: Record<string, string> = {
@@ -98,12 +98,12 @@ export interface EqualityResult {
     actual: string;
 }
 
-export async function jsonldEquals(expected: JsonLD, actual: JsonLD): Promise<EqualityResult> {
+export function jsonldEquals(expected: JsonLD, actual: JsonLD): EqualityResult {
     // TODO catch parsing errors and improve message.
     resetPatterns();
 
-    const expectedQuads = await jsonldToQuads(expected);
-    const actualQuads = await jsonldToQuads(actual);
+    const expectedQuads = jsonldToQuadsSync(expected);
+    const actualQuads = jsonldToQuadsSync(actual);
     const expectedTurtle = quadsToTurtle(expectedQuads);
     const actualTurtle = quadsToTurtle(actualQuads);
     const result = (success: boolean, message: string) => ({

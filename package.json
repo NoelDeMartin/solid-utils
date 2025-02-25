@@ -8,13 +8,14 @@
   "types": "dist/noeldemartin-solid-utils.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "rm dist -rf && npm run build:js && npm run build:types",
+    "build": "rm dist -rf && npm run build:workers && npm run build:js && npm run build:types",
     "build:js": "noeldemartin-build-javascript",
     "build:types": "noeldemartin-build-types",
+    "build:workers": "mkdir -p dist && esbuild src/helpers/io.worker.ts --bundle --external:worker_threads --external:http --external:@noeldemartin/utils --external:md5 --external:@noeldemartin/solid-utils-external --minify > dist/io.worker.js",
     "lint": "noeldemartin-lint src",
     "publish-next": "noeldemartin-publish-next",
-    "test": "jest --verbose",
-    "test:coverage": "jest --coverage"
+    "test": "npm run build:workers && jest --verbose",
+    "test:coverage": "npm run build:workers && jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -55,6 +56,7 @@
     "@types/jest": "^26.0.23",
     "@types/md5": "^2.3.0",
     "babel-plugin-transform-remove-imports": "^1.5.4",
+    "esbuild": "^0.25.0",
     "eslint": "^7.26.0",
     "jest": "^26.6.3",
     "rollup": "^2.48.0",

@@ -1,7 +1,19 @@
-import { jsonldToQuads, normalizeSparql, quadsToJsonLD, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import {
+    jsonldToQuads,
+    jsonldToQuadsSync,
+    normalizeSparql,
+    quadsToJsonLD,
+    sparqlToQuadsSync,
+    startWorker,
+    stopWorker,
+    turtleToQuadsSync,
+} from './io';
 import type { Quad } from '@rdfjs/types';
 
 describe('IO', () => {
+
+    beforeAll(() => startWorker());
+    afterAll(() => stopWorker());
 
     it('parses jsonld', async () => {
         // Arrange
@@ -13,6 +25,33 @@ describe('IO', () => {
 
         // Act
         const quads = await jsonldToQuads(jsonld) as [Quad, Quad];
+
+        // Assert
+        expect(quads).toHaveLength(2);
+
+        expect(quads[0].subject.termType).toEqual('BlankNode');
+        expect(quads[0].predicate.termType).toEqual('NamedNode');
+        expect(quads[0].predicate.value).toEqual('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+        expect(quads[0].object.termType).toEqual('NamedNode');
+        expect(quads[0].object.value).toEqual('https://schema.org/Movie');
+
+        expect(quads[1].subject.termType).toEqual('BlankNode');
+        expect(quads[1].predicate.termType).toEqual('NamedNode');
+        expect(quads[1].predicate.value).toEqual('https://schema.org/name');
+        expect(quads[1].object.termType).toEqual('Literal');
+        expect(quads[1].object.value).toEqual('Spirited Away');
+    });
+
+    it('parses jsonld synchronously', () => {
+        // Arrange
+        const jsonld = {
+            '@context': { '@vocab': 'https://schema.org/' },
+            '@type': 'Movie',
+            'name': 'Spirited Away',
+        };
+
+        // Act
+        const quads = jsonldToQuadsSync(jsonld) as [Quad, Quad];
 
         // Assert
         expect(quads).toHaveLength(2);
@@ -211,11 +250,13 @@ describe('IO', () => {
 
         // Assert
         expect(jsonld).toEqual({
-            '@graph': [{
-                '@id': '#me',
-                '@type': ['http://xmlns.com/foaf/0.1/Person'],
-                'http://xmlns.com/foaf/0.1/name': [{ '@value': 'John Doe' }],
-            }],
+            '@graph': [
+                {
+                    '@id': '#me',
+                    '@type': ['http://xmlns.com/foaf/0.1/Person'],
+                    'http://xmlns.com/foaf/0.1/name': [{ '@value': 'John Doe' }],
+                },
+            ],
         });
     });
 });

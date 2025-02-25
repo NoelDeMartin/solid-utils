@@ -1,4 +1,3 @@
-import md5 from 'md5';
 import {
     TurtleParser,
     TurtleWriter,
@@ -7,6 +6,7 @@ import {
     jsonLDFromRDF,
     jsonLDToRDF,
 } from '@noeldemartin/solid-utils-external';
+import md5 from 'md5';
 import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
 import type { Quad } from 'rdf-js';
 import type { JsonLdDocument, Term } from '@noeldemartin/solid-utils-external';
@@ -18,6 +18,7 @@ import NetworkRequestError from '@/errors/NetworkRequestError';
 import NotFoundError from '@/errors/NotFoundError';
 import UnauthorizedError from '@/errors/UnauthorizedError';
 import { isJsonLDGraph } from '@/helpers/jsonld';
+import SyncWorker from '@/helpers/SyncWorker';
 import type { JsonLD, JsonLDGraph, JsonLDResource } from '@/helpers/jsonld';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,8 +26,19 @@ export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
+const worker = new SyncWorker<typeof _workerActions>();
 const ANONYMOUS_PREFIX = 'anonymous://';
+const BLANK_PREFIX = 'blank://';
 const ANONYMOUS_PREFIX_LENGTH = ANONYMOUS_PREFIX.length;
+const BLANK_PREFIX_LENGTH = BLANK_PREFIX.length;
+
+export const _workerActions = {
+    async jsonldToTurtle(jsonld: JsonLD, baseIRI?: string): Promise<string> {
+        const quads = await jsonldToQuads(jsonld, baseIRI);
+
+        return quadsToTurtle(quads);
+    },
+};
 
 async function fetchRawSolidDocument(
     url: string,
@@ -132,20 +144,30 @@ function normalizeQuads(quads: Quad[]): string {
 }
 
 function preprocessSubjects(jsonld: JsonLD): void {
-    if (!jsonld['@id']?.startsWith('#')) {
-        return;
+    jsonld['@id'] ??= 'b0_blank';
+
+    if (jsonld['@id'].startsWith('#')) {
+        jsonld['@id'] = ANONYMOUS_PREFIX + jsonld['@id'];
     }
 
-    jsonld['@id'] = ANONYMOUS_PREFIX + jsonld['@id'];
+    if (!jsonld['@id'].includes(':')) {
+        jsonld['@id'] = BLANK_PREFIX + jsonld['@id'];
+    }
 }
 
 function postprocessSubjects(quads: Quad[]): void {
     for (const quad of quads) {
-        if (!quad.subject.value.startsWith(ANONYMOUS_PREFIX)) {
+        if (quad.subject.value.startsWith(ANONYMOUS_PREFIX)) {
+            quad.subject.value = quad.subject.value.slice(ANONYMOUS_PREFIX_LENGTH);
+
             continue;
         }
 
-        quad.subject.value = quad.subject.value.slice(ANONYMOUS_PREFIX_LENGTH);
+        if (quad.subject.value.startsWith(BLANK_PREFIX)) {
+            quad.subject = createBlankNode(quad.subject.value.slice(BLANK_PREFIX_LENGTH));
+
+            continue;
+        }
     }
 }
 
@@ -210,11 +232,28 @@ export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Q
 
     preprocessSubjects(jsonld);
 
-    const quads = await (jsonLDToRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
+    const quads = await (jsonLDToRDF(jsonld as JsonLdDocument, {
+        base: baseIRI,
+        produceGeneralizedRdf: true,
+    }) as Promise<Quad[]>);
 
     postprocessSubjects(quads);
 
     return quads;
+}
+
+export async function startWorker(): Promise<void> {
+    await worker.start('./dist/io.worker');
+}
+
+export async function stopWorker(): Promise<void> {
+    await worker.stop();
+}
+
+export function jsonldToQuadsSync(jsonld: JsonLD, baseIRI?: string): Quad[] {
+    const turtle = worker.execute('jsonldToTurtle', [jsonld, baseIRI]);
+
+    return turtleToQuadsSync(turtle, { baseIRI });
 }
 
 export function normalizeSparql(sparql: string): string {
@@ -268,10 +307,6 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
             }
 
             if (!quad) {
-                // data.quads = options.normalizeBlankNodes
-                //     ? normalizeBlankNodes(data.quads)
-                //     : data.quads;
-
                 resolve(data);
 
                 return;

@@ -1,4 +1,5 @@
-import { sparqlEquals, turtleEquals } from '@/helpers/testing';
+import { jsonldEquals, sparqlEquals, turtleEquals } from '@/helpers/testing';
+import type { JsonLD } from '@/helpers/jsonld';
 
 type CustomAssertions = {
     [assertion in keyof typeof assertions]: typeof assertions[assertion];
@@ -32,6 +33,15 @@ const assertions: Record<string, (this: Chai.AssertionStatic, ...args: any[]) =>
         const assert = self.assert.bind(this);
         const expected = query;
         const result = sparqlEquals(expected, actual);
+
+        assert(result.success, result.message, '', result.expected, result.actual);
+    },
+    jsonld(document: JsonLD | string): void {
+        const self = this as unknown as Chai.AssertionStatic;
+        const actual = self._obj;
+        const assert = self.assert.bind(this);
+        const expected = typeof document === 'string' ? JSON.parse(document) : document;
+        const result = jsonldEquals(expected, actual);
 
         assert(result.success, result.message, '', result.expected, result.actual);
     },
