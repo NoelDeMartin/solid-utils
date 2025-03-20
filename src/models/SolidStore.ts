@@ -1,6 +1,6 @@
-import type { BlankNode, Literal, NamedNode, Quad, Variable } from 'rdf-js';
+import type { BlankNode, Literal, NamedNode, Quad, Variable } from '@rdfjs/types';
 
-import { expandIRI } from '@/helpers/vocabs';
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 
 import SolidThing from './SolidThing';
 
@@ -28,7 +28,7 @@ export default class SolidStore {
 
     public statements(subject?: Term | string, predicate?: Term | string, object?: Term | string): Quad[] {
         return this.quads.filter(
-            statement =>
+            (statement) =>
                 (!object || this.termMatches(statement.object, object)) &&
                 (!subject || this.termMatches(statement.subject, subject)) &&
                 (!predicate || this.termMatches(statement.predicate, predicate)),
@@ -37,10 +37,10 @@ export default class SolidStore {
 
     public statement(subject?: Term | string, predicate?: Term | string, object?: Term | string): Quad | null {
         const statement = this.quads.find(
-            statement =>
-                (!object || this.termMatches(statement.object, object)) &&
-                (!subject || this.termMatches(statement.subject, subject)) &&
-                (!predicate || this.termMatches(statement.predicate, predicate)),
+            (_statement) =>
+                (!object || this.termMatches(_statement.object, object)) &&
+                (!subject || this.termMatches(_statement.subject, subject)) &&
+                (!predicate || this.termMatches(_statement.predicate, predicate)),
         );
 
         return statement ?? null;

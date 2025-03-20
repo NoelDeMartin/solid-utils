@@ -1,7 +1,8 @@
-import UnsupportedAuthorizationProtocolError from '@/errors/UnsupportedAuthorizationProtocolError';
-import type { Fetch } from '@/helpers/io';
+import { describe, expect, it } from 'vitest';
+import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 
-import { mockFetch } from '@/testing/mocking';
+// eslint-disable-next-line max-len
+import UnsupportedAuthorizationProtocolError from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocolError';
 
 import { fetchSolidDocumentACL } from './wac';
 
@@ -9,57 +10,52 @@ describe('WAC helpers', () => {
 
     it('resolves relative ACL urls', async () => {
         // Arrange
-        const fetch = mockFetch();
+        const server = new FakeServer();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
 
-        fetch.mockResponse('', { Link: '<my-favorite-movie.acl>;rel="acl"' });
-        fetch.mockResponse(`
-            @prefix acl: <http://www.w3.org/ns/auth/acl#>.
-            @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+        server.respondOnce(documentUrl, FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }));
+        server.respondOnce(
+            `${documentUrl}.acl`,
+            FakeResponse.success(`
+                @prefix acl: <http://www.w3.org/ns/auth/acl#>.
+                @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
-            <#owner>
-                a acl:Authorization;
-                acl:agent <https://example.com/alice/profile/card#me>;
-                acl:accessTo <./my-favorite-movie> ;
-                acl:mode acl:Read, acl:Write, acl:Control .
-        `);
+                <#owner>
+                    a acl:Authorization;
+                    acl:agent <https://example.com/alice/profile/card#me>;
+                    acl:accessTo <./my-favorite-movie> ;
+                    acl:mode acl:Read, acl:Write, acl:Control .
+            `),
+        );
 
         // Act
-        const {
-            url,
-            effectiveUrl,
-            document,
-        } = await fetchSolidDocumentACL(documentUrl, fetch as unknown as Fetch);
+        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, server.fetch);
 
         // Assert
-        expect(url).toEqual('https://example.com/alice/movies/my-favorite-movie.acl');
+        expect(url).toEqual(`${documentUrl}.acl`);
         expect(effectiveUrl).toEqual(url);
-        expect(
-            document.contains(
-                'https://example.com/alice/movies/my-favorite-movie.acl#owner',
-                'rdf:type',
-                'acl:Authorization',
-            ),
-        ).toBe(true);
+        expect(document.contains(`${documentUrl}.acl#owner`, 'rdf:type', 'acl:Authorization')).toBe(true);
 
-        expect(fetch).toHaveBeenCalledTimes(2);
-
-        expect((fetch.mock.calls[0] as unknown as [RequestInfo, RequestInit])[0]).toEqual(documentUrl);
-        expect((fetch.mock.calls[0] as unknown as [RequestInfo, RequestInit])[1].method).toEqual('HEAD');
-
-        expect((fetch.mock.calls[1] as unknown as [RequestInfo, RequestInit])[0]).toEqual(url);
+        expect(server.getRequests()).toHaveLength(2);
+        expect(server.getRequest(documentUrl)?.method).toEqual('HEAD');
+        expect(server.getRequest(url)).not.toBeNull();
     });
 
     it('fails with ACP resources', async () => {
         // Arrange
-        const fetch = mockFetch();
+        const server = new FakeServer();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
 
-        fetch.mockResponse('', { Link: '<my-favorite-movie.acl>;rel="acl"' });
-        fetch.mockResponse('', { Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"' });
+        server.respondOnce(documentUrl, FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }));
+        server.respondOnce(
+            `${documentUrl}.acl`,
+            FakeResponse.success(undefined, {
+                Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"',
+            }),
+        );
 
         // Act
-        const promisedDocument = fetchSolidDocumentACL(documentUrl, fetch as unknown as Fetch);
+        const promisedDocument = fetchSolidDocumentACL(documentUrl, server.fetch);
 
         // Assert
         await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocolError);

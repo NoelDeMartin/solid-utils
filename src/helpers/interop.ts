@@ -1,8 +1,13 @@
 import { uuid } from '@noeldemartin/utils';
 
-import { createSolidDocument, fetchSolidDocument, solidDocumentExists, updateSolidDocument } from '@/helpers/io';
-import type { Fetch } from '@/helpers/io';
-import type { SolidUserProfile } from '@/helpers/auth';
+import {
+    createSolidDocument,
+    fetchSolidDocument,
+    solidDocumentExists,
+    updateSolidDocument,
+} from '@noeldemartin/solid-utils/helpers/io';
+import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
+import type { SolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
 
 type TypeIndexType = 'public' | 'private';
 
@@ -12,7 +17,7 @@ async function mintTypeIndexUrl(user: SolidUserProfile, type: TypeIndexType, fet
     const storageUrl = user.storageUrls[0];
     const typeIndexUrl = `${storageUrl}settings/${type}TypeIndex`;
 
-    return await solidDocumentExists(typeIndexUrl, { fetch })
+    return (await solidDocumentExists(typeIndexUrl, { fetch }))
         ? `${storageUrl}settings/${type}TypeIndex-${uuid()}`
         : typeIndexUrl;
 }
@@ -25,9 +30,10 @@ async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetc
     fetch = fetch ?? window.fetch.bind(fetch);
 
     const typeIndexUrl = await mintTypeIndexUrl(user, type, fetch);
-    const typeIndexBody = type === 'public'
-        ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
-        : `
+    const typeIndexBody =
+        type === 'public'
+            ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
+            : `
             <> a
                 <http://www.w3.org/ns/solid/terms#TypeIndex>,
                 <http://www.w3.org/ns/solid/terms#UnlistedDocument> .
@@ -60,15 +66,16 @@ async function findRegistrations(
     const typeIndex = await fetchSolidDocument(typeIndexUrl, { fetch });
     const types = Array.isArray(type) ? type : [type];
 
-    return types.map(
-        type => typeIndex
-            .statements(undefined, 'rdf:type', 'solid:TypeRegistration')
-            .filter(statement => typeIndex.contains(statement.subject.value, 'solid:forClass', type))
-            .map(statement => typeIndex.statements(statement.subject.value, predicate))
-            .flat()
-            .map(statement => statement.object.value)
-            .filter(url => !!url),
-    ).flat();
+    return types
+        .map((_type) =>
+            typeIndex
+                .statements(undefined, 'rdf:type', 'solid:TypeRegistration')
+                .filter((statement) => typeIndex.contains(statement.subject.value, 'solid:forClass', _type))
+                .map((statement) => typeIndex.statements(statement.subject.value, predicate))
+                .flat()
+                .map((statement) => statement.object.value)
+                .filter((url) => !!url))
+        .flat();
 }
 
 /**

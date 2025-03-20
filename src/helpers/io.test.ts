@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { jsonldToQuads, normalizeSparql, quadsToJsonLD, sparqlToQuadsSync, turtleToQuadsSync } from './io';
 import type { Quad } from '@rdfjs/types';
 
@@ -12,7 +14,7 @@ describe('IO', () => {
         };
 
         // Act
-        const quads = await jsonldToQuads(jsonld) as [Quad, Quad];
+        const quads = (await jsonldToQuads(jsonld)) as [Quad, Quad];
 
         // Assert
         expect(quads).toHaveLength(2);
@@ -40,7 +42,7 @@ describe('IO', () => {
         };
 
         // Act
-        const quads = await jsonldToQuads(jsonld) as [Quad, Quad];
+        const quads = (await jsonldToQuads(jsonld)) as [Quad, Quad];
 
         // Assert
         expect(quads).toHaveLength(2);
@@ -85,7 +87,7 @@ describe('IO', () => {
         // Assert
         expect(quads).toHaveLength(4);
 
-        [0, 2].forEach(index => {
+        [0, 2].forEach((index) => {
             expect(quads[index]?.subject.termType).toEqual('NamedNode');
             expect(quads[index]?.subject.value).toEqual('solid://movies/spirited-away');
             expect(quads[index]?.predicate.termType).toEqual('NamedNode');
@@ -94,7 +96,7 @@ describe('IO', () => {
             expect(quads[index]?.object.value).toEqual('https://schema.org/Movie');
         });
 
-        [1, 3].forEach(index => {
+        [1, 3].forEach((index) => {
             expect(quads[index]?.subject.termType).toEqual('NamedNode');
             expect(quads[index]?.subject.value).toEqual('solid://movies/spirited-away');
             expect(quads[index]?.predicate.termType).toEqual('NamedNode');
@@ -127,15 +129,17 @@ describe('IO', () => {
         const normalized = normalizeSparql(sparql);
 
         // Assert
-        expect(normalized).toEqual([
-            'INSERT DATA {',
-            '    <#me> <http://xmlns.com/foaf/0.1/lastName> "Doe" .',
-            '    <#me> <http://xmlns.com/foaf/0.1/name> "Amy" .',
-            '} ;',
-            'DELETE DATA {',
-            '    <#me> <http://xmlns.com/foaf/0.1/name> "John Doe" .',
-            '}',
-        ].join('\n'));
+        expect(normalized).toEqual(
+            [
+                'INSERT DATA {',
+                '    <#me> <http://xmlns.com/foaf/0.1/lastName> "Doe" .',
+                '    <#me> <http://xmlns.com/foaf/0.1/name> "Amy" .',
+                '} ;',
+                'DELETE DATA {',
+                '    <#me> <http://xmlns.com/foaf/0.1/name> "John Doe" .',
+                '}',
+            ].join('\n'),
+        );
     });
 
     it('parses sparql', () => {
@@ -211,11 +215,14 @@ describe('IO', () => {
 
         // Assert
         expect(jsonld).toEqual({
-            '@graph': [{
-                '@id': '#me',
-                '@type': ['http://xmlns.com/foaf/0.1/Person'],
-                'http://xmlns.com/foaf/0.1/name': [{ '@value': 'John Doe' }],
-            }],
+            '@graph': [
+                {
+                    '@id': '#me',
+                    '@type': ['http://xmlns.com/foaf/0.1/Person'],
+                    'http://xmlns.com/foaf/0.1/name': [{ '@value': 'John Doe' }],
+                },
+            ],
         });
     });
+
 });

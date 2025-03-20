@@ -1,5 +1,5 @@
-import { compactJsonLD } from '@noeldemartin/solid-utils-external';
-import type { JsonLdDocument } from '@noeldemartin/solid-utils-external';
+import { compact } from 'jsonld';
+import type { JsonLdDocument } from 'jsonld';
 
 export type JsonLD = Partial<{
     '@context': Record<string, unknown>;
@@ -14,7 +14,7 @@ export type JsonLDGraph = {
 };
 
 export async function compactJsonLDGraph(jsonld: JsonLDGraph): Promise<JsonLDGraph> {
-    const compactedJsonLD = await compactJsonLD(jsonld as JsonLdDocument, {});
+    const compactedJsonLD = await compact(jsonld as JsonLdDocument, {});
 
     if ('@graph' in compactedJsonLD) {
         return compactedJsonLD as JsonLDGraph;

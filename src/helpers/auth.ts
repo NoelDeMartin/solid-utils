@@ -19,7 +19,10 @@ export interface SolidUserProfile {
     privateTypeIndexUrl?: string;
 }
 
-async function fetchExtendedUserProfile(webIdDocument: SolidDocument, options?: FetchSolidDocumentOptions): Promise<{
+async function fetchExtendedUserProfile(
+    webIdDocument: SolidDocument,
+    options?: FetchSolidDocumentOptions,
+): Promise<{
     store: SolidStore;
     cloaked: boolean;
     writableProfileUrl: string | null;
@@ -29,12 +32,12 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, options?: 
     const addReferencedDocumentUrls = (document: SolidDocument) => {
         document
             .statements(undefined, 'foaf:isPrimaryTopicOf')
-            .map(quad => quad.object.value)
-            .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
+            .map((quad) => quad.object.value)
+            .forEach((profileDocumentUrl) => (documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null));
         document
             .statements(undefined, 'foaf:primaryTopic')
-            .map(quad => quad.subject.value)
-            .forEach(profileDocumentUrl => documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null);
+            .map((quad) => quad.subject.value)
+            .forEach((profileDocumentUrl) => (documents[profileDocumentUrl] = documents[profileDocumentUrl] ?? null));
     };
     const loadProfileDocuments = async (): Promise<void> => {
         for (const [url, document] of Object.entries(documents)) {
@@ -43,12 +46,12 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, options?: 
             }
 
             try {
-                const document = await fetchSolidDocument(url, options);
+                const _document = await fetchSolidDocument(url, options);
 
-                documents[url] = document;
-                store.addQuads(document.getQuads());
+                documents[url] = _document;
+                store.addQuads(_document.getQuads());
 
-                addReferencedDocumentUrls(document);
+                addReferencedDocumentUrls(_document);
             } catch (error) {
                 if (error instanceof UnauthorizedError) {
                     documents[url] = false;
@@ -65,18 +68,16 @@ async function fetchExtendedUserProfile(webIdDocument: SolidDocument, options?: 
 
     do {
         await loadProfileDocuments();
-    } while (Object.values(documents).some(document => document === null));
+    } while (Object.values(documents).some((document) => document === null));
 
     return {
         store,
-        cloaked: Object.values(documents).some(document => document === false),
-        writableProfileUrl:
-            webIdDocument.isUserWritable()
-                ? webIdDocument.url
-                : Object
-                    .values(documents)
-                    .find((document): document is SolidDocument => !!document && document.isUserWritable())
-                    ?.url ?? null,
+        cloaked: Object.values(documents).some((document) => document === false),
+        writableProfileUrl: webIdDocument.isUserWritable()
+            ? webIdDocument.url
+            : (Object.values(documents).find(
+                (document): document is SolidDocument => !!document && document.isUserWritable(),
+            )?.url ?? null),
     };
 }
 
@@ -97,7 +98,7 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
     }
 
     const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, options);
-    const storageUrls = store.statements(webId, 'pim:storage').map(storage => storage.object.value);
+    const storageUrls = store.statements(webId, 'pim:storage').map((storage) => storage.object.value);
     const publicTypeIndex = store.statement(webId, 'solid:publicTypeIndex');
     const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
 
@@ -126,9 +127,7 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
         writableProfileUrl,
         storageUrls: arrayUnique(storageUrls) as [string, ...string[]],
         ...objectWithoutEmpty({
-            name:
-                store.statement(webId, 'vcard:fn')?.object.value ??
-                store.statement(webId, 'foaf:name')?.object.value,
+            name: store.statement(webId, 'vcard:fn')?.object.value ?? store.statement(webId, 'foaf:name')?.object.value,
             avatarUrl:
                 store.statement(webId, 'vcard:hasPhoto')?.object.value ??
                 store.statement(webId, 'foaf:img')?.object.value,
@@ -156,9 +155,11 @@ export async function fetchLoginUserProfile(
         return fetchUserProfile(loginUrl, options);
     }
 
-    const fetchProfile = silenced(url => fetchUserProfile(url, options));
+    const fetchProfile = silenced((url) => fetchUserProfile(url, options));
 
-    return await fetchProfile(loginUrl)
-        ?? await fetchProfile(loginUrl.replace(/\/$/, '').concat('/profile/card#me'))
-        ?? await fetchProfile(urlRoot(loginUrl).concat('/profile/card#me'));
+    return (
+        (await fetchProfile(loginUrl)) ??
+        (await fetchProfile(loginUrl.replace(/\/$/, '').concat('/profile/card#me'))) ??
+        (await fetchProfile(urlRoot(loginUrl).concat('/profile/card#me')))
+    );
 }

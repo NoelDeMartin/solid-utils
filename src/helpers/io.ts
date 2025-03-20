@@ -1,24 +1,20 @@
 import md5 from 'md5';
-import {
-    TurtleParser,
-    TurtleWriter,
-    createBlankNode,
-    createQuad,
-    jsonLDFromRDF,
-    jsonLDToRDF,
-} from '@noeldemartin/solid-utils-external';
 import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
-import type { Quad } from 'rdf-js';
-import type { JsonLdDocument, Term } from '@noeldemartin/solid-utils-external';
+import { BlankNode as N3BlankNode, Quad as N3Quad, Parser, Writer } from 'n3';
+import { fromRDF, toRDF } from 'jsonld';
+import type { JsonLdDocument } from 'jsonld';
+import type { Quad } from '@rdfjs/types';
+import type { Term } from 'n3';
 
-import SolidDocument from '@/models/SolidDocument';
+import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 
-import MalformedSolidDocumentError, { SolidDocumentFormat } from '@/errors/MalformedSolidDocumentError';
-import NetworkRequestError from '@/errors/NetworkRequestError';
-import NotFoundError from '@/errors/NotFoundError';
-import UnauthorizedError from '@/errors/UnauthorizedError';
-import { isJsonLDGraph } from '@/helpers/jsonld';
-import type { JsonLD, JsonLDGraph, JsonLDResource } from '@/helpers/jsonld';
+// eslint-disable-next-line max-len
+import MalformedSolidDocumentError, { SolidDocumentFormat } from '@noeldemartin/solid-utils/errors/MalformedSolidDocumentError';
+import NetworkRequestError from '@noeldemartin/solid-utils/errors/NetworkRequestError';
+import NotFoundError from '@noeldemartin/solid-utils/errors/NotFoundError';
+import UnauthorizedError from '@noeldemartin/solid-utils/errors/UnauthorizedError';
+import { isJsonLDGraph } from '@noeldemartin/solid-utils/helpers/jsonld';
+import type { JsonLD, JsonLDGraph, JsonLDResource } from '@noeldemartin/solid-utils/helpers/jsonld';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
@@ -44,11 +40,9 @@ async function fetchRawSolidDocument(
         const fetch = options?.fetch ?? window.fetch;
         const response = await fetch(url, requestOptions);
 
-        if (response.status === 404)
-            throw new NotFoundError(url);
+        if (response.status === 404) throw new NotFoundError(url);
 
-        if ([401, 403].includes(response.status))
-            throw new UnauthorizedError(url, response.status);
+        if ([401, 403].includes(response.status)) throw new UnauthorizedError(url, response.status);
 
         const body = await response.text();
 
@@ -57,11 +51,9 @@ async function fetchRawSolidDocument(
             headers: response.headers,
         };
     } catch (error) {
-        if (error instanceof UnauthorizedError)
-            throw error;
+        if (error instanceof UnauthorizedError) throw error;
 
-        if (error instanceof NotFoundError)
-            throw error;
+        if (error instanceof NotFoundError) throw error;
 
         throw new NetworkRequestError(url, { cause: error });
     }
@@ -71,15 +63,14 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
     const normalizedQuads = quads.slice(0);
     const quadsIndexes: Record<string, Set<number>> = {};
     const blankNodeIds = arr(quads)
-        .flatMap(
-            (quad, index) => tap(
+        .flatMap((quad, index) =>
+            tap(
                 arrayFilter([
                     quad.object.termType === 'BlankNode' ? quad.object.value : null,
                     quad.subject.termType === 'BlankNode' ? quad.subject.value : null,
                 ]),
-                ids => ids.forEach(id => (quadsIndexes[id] ??= new Set()).add(index)),
-            ),
-        )
+                (ids) => ids.forEach((id) => (quadsIndexes[id] ??= new Set()).add(index)),
+            ))
         .filter()
         .unique();
 
@@ -87,13 +78,10 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
         const quadIndexes = quadsIndexes[originalId] as Set<number>;
         const normalizedId = md5(
             arr(quadIndexes)
-                .map(index => quads[index] as Quad)
+                .map((index) => quads[index] as Quad)
                 .filter(({ subject: { termType, value } }) => termType === 'BlankNode' && value === originalId)
-                .map(
-                    ({ predicate, object }) => object.termType === 'BlankNode'
-                        ? predicate.value
-                        : predicate.value + object.value,
-                )
+                .map(({ predicate, object }) =>
+                    object.termType === 'BlankNode' ? predicate.value : predicate.value + object.value)
                 .sorted()
                 .join(),
         );
@@ -106,20 +94,15 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
             };
 
             for (const [termName, termValue] of Object.entries(terms)) {
-                if (termValue.termType !== 'BlankNode' || termValue.value !== originalId)
-                    continue;
+                if (termValue.termType !== 'BlankNode' || termValue.value !== originalId) continue;
 
-                terms[termName] = createBlankNode(normalizedId) as Term;
+                terms[termName] = new N3BlankNode(normalizedId) as Term;
             }
 
             arrayReplace(
                 normalizedQuads,
                 quad,
-                createQuad(
-                    terms.subject as Term,
-                    quad.predicate as Term,
-                    terms.object as Term,
-                ),
+                new N3Quad(terms.subject as Term, quad.predicate as Term, terms.object as Term),
             );
         }
     }
@@ -128,7 +111,10 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
 }
 
 function normalizeQuads(quads: Quad[]): string {
-    return quads.map(quad => '    ' + quadToTurtle(quad)).sort().join('\n');
+    return quads
+        .map((quad) => '    ' + quadToTurtle(quad))
+        .sort()
+        .join('\n');
 }
 
 function preprocessSubjects(jsonld: JsonLD): void {
@@ -194,8 +180,7 @@ export async function fetchSolidDocumentIfFound(
 
         return document;
     } catch (error) {
-        if (!(error instanceof NotFoundError))
-            throw error;
+        if (!(error instanceof NotFoundError)) throw error;
 
         return null;
     }
@@ -203,14 +188,14 @@ export async function fetchSolidDocumentIfFound(
 
 export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Quad[]> {
     if (isJsonLDGraph(jsonld)) {
-        const graphQuads = await Promise.all(jsonld['@graph'].map(resource => jsonldToQuads(resource, baseIRI)));
+        const graphQuads = await Promise.all(jsonld['@graph'].map((resource) => jsonldToQuads(resource, baseIRI)));
 
         return graphQuads.flat();
     }
 
     preprocessSubjects(jsonld);
 
-    const quads = await (jsonLDToRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
+    const quads = await (toRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
 
     postprocessSubjects(quads);
 
@@ -220,10 +205,9 @@ export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Q
 export function normalizeSparql(sparql: string): string {
     const quads = sparqlToQuadsSync(sparql);
 
-    return Object
-        .entries(quads)
-        .reduce((normalizedOperations, [operation, quads]) => {
-            const normalizedQuads = normalizeQuads(quads);
+    return Object.entries(quads)
+        .reduce((normalizedOperations, [operation, _quads]) => {
+            const normalizedQuads = normalizeQuads(_quads);
 
             return normalizedOperations.concat(`${operation.toUpperCase()} DATA {\n${normalizedQuads}\n}`);
         }, [] as string[])
@@ -238,7 +222,7 @@ export function normalizeTurtle(sparql: string): string {
 
 export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {}): Promise<RDFGraphData> {
     const parserOptions = objectWithoutEmpty({ baseIRI: options.baseIRI });
-    const parser = new TurtleParser(parserOptions);
+    const parser = new Parser(parserOptions);
     const data: RDFGraphData = {
         quads: [],
         containsRelativeIRIs: false,
@@ -257,11 +241,7 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
         parser.parse(turtle, (error, quad) => {
             if (error) {
                 reject(
-                    new MalformedSolidDocumentError(
-                        options.baseIRI ?? null,
-                        SolidDocumentFormat.Turtle,
-                        error.message,
-                    ),
+                    new MalformedSolidDocumentError(options.baseIRI ?? null, SolidDocumentFormat.Turtle, error.message),
                 );
 
                 return;
@@ -283,7 +263,7 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
 }
 
 export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
-    const graph = await jsonLDFromRDF(quads);
+    const graph = await fromRDF(quads);
 
     return {
         '@graph': graph as JsonLDResource[],
@@ -291,13 +271,13 @@ export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
 }
 
 export function quadsToTurtle(quads: Quad[]): string {
-    const writer = new TurtleWriter;
+    const writer = new Writer();
 
     return writer.quadsToString(quads);
 }
 
 export function quadToTurtle(quad: Quad): string {
-    const writer = new TurtleWriter;
+    const writer = new Writer();
 
     return writer.quadsToString([quad]).slice(0, -1);
 }
@@ -319,12 +299,14 @@ export async function sparqlToQuads(
     const operations = stringMatchAll<3>(sparql, /(\w+) DATA {([^}]+)}/g);
     const quads: Record<string, Quad[]> = {};
 
-    await Promise.all([...operations].map(async operation => {
-        const operationName = operation[1].toLowerCase();
-        const operationBody = operation[2];
+    await Promise.all(
+        [...operations].map(async (operation) => {
+            const operationName = operation[1].toLowerCase();
+            const operationBody = operation[2];
 
-        quads[operationName] = await turtleToQuads(operationBody, options);
-    }));
+            quads[operationName] = await turtleToQuads(operationBody, options);
+        }),
+    );
 
     return quads;
 }
@@ -351,14 +333,12 @@ export async function turtleToQuads(turtle: string, options: Partial<ParsingOpti
 
 export function turtleToQuadsSync(turtle: string, options: Partial<ParsingOptions> = {}): Quad[] {
     const parserOptions = objectWithoutEmpty({ baseIRI: options.baseIRI });
-    const parser = new TurtleParser(parserOptions);
+    const parser = new Parser(parserOptions);
 
     try {
         const quads = parser.parse(turtle);
 
-        return options.normalizeBlankNodes
-            ? normalizeBlankNodes(quads)
-            : quads;
+        return options.normalizeBlankNodes ? normalizeBlankNodes(quads) : quads;
     } catch (error) {
         throw new MalformedSolidDocumentError(
             options.baseIRI ?? null,

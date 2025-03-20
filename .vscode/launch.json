@@ -3,27 +3,15 @@
     "configurations": [
         {
             "type": "node",
+            "runtimeVersion": "22.14.0",
             "request": "launch",
-            "runtimeVersion": "16.20.2",
-            "name": "Jest All",
-            "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": ["--runInBand"],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "runtimeVersion": "16.20.2",
-            "name": "Jest Current File",
-            "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": [
-                "${fileBasenameNoExtension}",
-                "--config",
-                "jest.config.js"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
+            "name": "Debug Current Test File",
+            "autoAttachChildProcesses": true,
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+            "args": ["run", "${fileBasenameNoExtension}"],
+            "smartStep": true,
+            "console": "integratedTerminal"
         }
     ]
 }

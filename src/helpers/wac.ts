@@ -1,9 +1,10 @@
 import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
-import UnsupportedAuthorizationProtocolError from '@/errors/UnsupportedAuthorizationProtocolError';
-import { fetchSolidDocumentIfFound } from '@/helpers/io';
-import type SolidDocument from '@/models/SolidDocument';
-import type { Fetch } from '@/helpers/io';
+// eslint-disable-next-line max-len
+import UnsupportedAuthorizationProtocolError from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocolError';
+import { fetchSolidDocumentIfFound } from '@noeldemartin/solid-utils/helpers/io';
+import type SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
+import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
 
 async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<string> {
     fetch = fetch ?? window.fetch.bind(window);
@@ -24,7 +25,7 @@ async function fetchEffectiveACL(
     fetch: Fetch,
     aclResourceUrl?: string | null,
 ): Promise<SolidDocument> {
-    aclResourceUrl = aclResourceUrl ?? await fetchACLResourceUrl(resourceUrl, fetch);
+    aclResourceUrl = aclResourceUrl ?? (await fetchACLResourceUrl(resourceUrl, fetch));
 
     const aclDocument = await fetchSolidDocumentIfFound(aclResourceUrl ?? '', { fetch });
 
@@ -39,7 +40,10 @@ async function fetchEffectiveACL(
     return aclDocument;
 }
 
-export async function fetchSolidDocumentACL(documentUrl: string, fetch: Fetch): Promise<{
+export async function fetchSolidDocumentACL(
+    documentUrl: string,
+    fetch: Fetch,
+): Promise<{
     url: string;
     effectiveUrl: string;
     document: SolidDocument;

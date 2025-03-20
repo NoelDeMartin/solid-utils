@@ -1,6 +1,8 @@
-import { mintJsonLDIdentifiers } from '@/helpers';
-import { parseResourceSubject } from '@/helpers/identifiers';
-import type { JsonLD } from '@/helpers';
+import { describe, expect, it } from 'vitest';
+
+import { mintJsonLDIdentifiers } from '@noeldemartin/solid-utils/helpers';
+import { parseResourceSubject } from '@noeldemartin/solid-utils/helpers/identifiers';
+import type { JsonLD } from '@noeldemartin/solid-utils/helpers';
 
 describe('Identifiers helpers', () => {
 

@@ -1,6 +1,6 @@
 import { arr, isArray, isObject, objectDeepClone, objectWithoutEmpty, tap, urlParse, uuid } from '@noeldemartin/utils';
 import type { UrlParts } from '@noeldemartin/utils';
-import type { JsonLD, JsonLDResource } from '@/helpers';
+import type { JsonLD, JsonLDResource } from '@noeldemartin/solid-utils/helpers';
 
 export interface SubjectParts {
     containerUrl?: string;

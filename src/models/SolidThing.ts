@@ -1,6 +1,6 @@
-import type { Quad } from 'rdf-js';
+import type { Quad } from '@rdfjs/types';
 
-import { expandIRI } from '@/helpers/vocabs';
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 
 export default class SolidThing {
 
@@ -13,15 +13,13 @@ export default class SolidThing {
     }
 
     public value(property: string): string | undefined {
-        return this.quads
-            .find(quad => quad.predicate.value === expandIRI(property))
-            ?.object.value;
+        return this.quads.find((quad) => quad.predicate.value === expandIRI(property))?.object.value;
     }
 
     public values(property: string): string[] {
         return this.quads
-            .filter(quad => quad.predicate.value === expandIRI(property))
-            .map(quad => quad.object.value);
+            .filter((quad) => quad.predicate.value === expandIRI(property))
+            .map((quad) => quad.object.value);
     }
 
 }
