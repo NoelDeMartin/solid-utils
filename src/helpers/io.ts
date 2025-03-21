@@ -1,7 +1,7 @@
+import * as jsonld from 'jsonld';
 import md5 from 'md5';
 import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
 import { BlankNode as N3BlankNode, Quad as N3Quad, Parser, Writer } from 'n3';
-import { fromRDF, toRDF } from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 import type { Quad } from '@rdfjs/types';
 import type { Term } from 'n3';
@@ -117,12 +117,12 @@ function normalizeQuads(quads: Quad[]): string {
         .join('\n');
 }
 
-function preprocessSubjects(jsonld: JsonLD): void {
-    if (!jsonld['@id']?.startsWith('#')) {
+function preprocessSubjects(json: JsonLD): void {
+    if (!json['@id']?.startsWith('#')) {
         return;
     }
 
-    jsonld['@id'] = ANONYMOUS_PREFIX + jsonld['@id'];
+    json['@id'] = ANONYMOUS_PREFIX + json['@id'];
 }
 
 function postprocessSubjects(quads: Quad[]): void {
@@ -186,16 +186,16 @@ export async function fetchSolidDocumentIfFound(
     }
 }
 
-export async function jsonldToQuads(jsonld: JsonLD, baseIRI?: string): Promise<Quad[]> {
-    if (isJsonLDGraph(jsonld)) {
-        const graphQuads = await Promise.all(jsonld['@graph'].map((resource) => jsonldToQuads(resource, baseIRI)));
+export async function jsonldToQuads(json: JsonLD, baseIRI?: string): Promise<Quad[]> {
+    if (isJsonLDGraph(json)) {
+        const graphQuads = await Promise.all(json['@graph'].map((resource) => jsonldToQuads(resource, baseIRI)));
 
         return graphQuads.flat();
     }
 
-    preprocessSubjects(jsonld);
+    preprocessSubjects(json);
 
-    const quads = await (toRDF(jsonld as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
+    const quads = await (jsonld.toRDF(json as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
 
     postprocessSubjects(quads);
 
@@ -263,7 +263,7 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
 }
 
 export async function quadsToJsonLD(quads: Quad[]): Promise<JsonLDGraph> {
-    const graph = await fromRDF(quads);
+    const graph = await jsonld.fromRDF(quads);
 
     return {
         '@graph': graph as JsonLDResource[],

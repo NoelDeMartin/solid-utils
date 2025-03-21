@@ -1,4 +1,4 @@
-import { compact } from 'jsonld';
+import * as jsonld from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 
 export type JsonLD = Partial<{
@@ -13,8 +13,8 @@ export type JsonLDGraph = {
     '@graph': JsonLDResource[];
 };
 
-export async function compactJsonLDGraph(jsonld: JsonLDGraph): Promise<JsonLDGraph> {
-    const compactedJsonLD = await compact(jsonld as JsonLdDocument, {});
+export async function compactJsonLDGraph(json: JsonLDGraph): Promise<JsonLDGraph> {
+    const compactedJsonLD = await jsonld.compact(json as JsonLdDocument, {});
 
     if ('@graph' in compactedJsonLD) {
         return compactedJsonLD as JsonLDGraph;
@@ -27,6 +27,6 @@ export async function compactJsonLDGraph(jsonld: JsonLDGraph): Promise<JsonLDGra
     return { '@graph': [] };
 }
 
-export function isJsonLDGraph(jsonld: JsonLD): jsonld is JsonLDGraph {
-    return '@graph' in jsonld;
+export function isJsonLDGraph(json: JsonLD): json is JsonLDGraph {
+    return '@graph' in json;
 }
