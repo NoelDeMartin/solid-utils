@@ -19,9 +19,7 @@ export default class UnauthorizedError extends JSError {
     }
 
     public get forbidden(): boolean | undefined {
-        return typeof this.responseStatus !== 'undefined'
-            ? this.responseStatus === 403
-            : undefined;
+        return typeof this.responseStatus !== 'undefined' ? this.responseStatus === 403 : undefined;
     }
 
 }

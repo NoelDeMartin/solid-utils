@@ -1,7 +1,7 @@
 import { JSError } from '@noeldemartin/utils';
 
 function getErrorMessage(messageOrResponse: string | Response, response?: Response): string {
-    response = response ?? messageOrResponse as Response;
+    response = response ?? (messageOrResponse as Response);
 
     return typeof messageOrResponse === 'string'
         ? `${messageOrResponse} (returned ${response.status} status code)`
@@ -17,7 +17,7 @@ export default class UnsuccessfulRequestError extends JSError {
     constructor(messageOrResponse: string | Response, response?: Response) {
         super(getErrorMessage(messageOrResponse, response));
 
-        this.response = response ?? messageOrResponse as Response;
+        this.response = response ?? (messageOrResponse as Response);
     }
 
 }

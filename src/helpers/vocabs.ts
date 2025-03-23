@@ -23,22 +23,19 @@ export function defineIRIPrefix(name: string, value: string): void {
 }
 
 export function expandIRI(iri: string, options: Partial<ExpandIRIOptions> = {}): string {
-    if (iri.startsWith('http'))
-        return iri;
+    if (iri.startsWith('http')) return iri;
 
     const [prefix, name] = iri.split(':');
 
     if (prefix && name) {
         const expandedPrefix = knownPrefixes[prefix] ?? options.extraContext?.[prefix] ?? null;
 
-        if (!expandedPrefix)
-            throw new Error(`Can't expand IRI with unknown prefix: '${iri}'`);
+        if (!expandedPrefix) throw new Error(`Can't expand IRI with unknown prefix: '${iri}'`);
 
         return expandedPrefix + name;
     }
 
-    if (!options.defaultPrefix)
-        throw new Error(`Can't expand IRI without a default prefix: '${iri}'`);
+    if (!options.defaultPrefix) throw new Error(`Can't expand IRI without a default prefix: '${iri}'`);
 
     return options.defaultPrefix + prefix;
 }
