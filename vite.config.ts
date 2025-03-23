@@ -7,12 +7,15 @@ export default defineConfig({
     build: {
         sourcemap: true,
         lib: {
-            entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+            entry: {
+                'noeldemartin-solid-utils': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+                'testing': fileURLToPath(new URL('./src/testing/index.ts', import.meta.url)),
+            },
             formats: ['es'],
-            fileName: 'noeldemartin-solid-utils',
+            fileName: (_, entry) => (entry.includes('testing') ? 'testing.js' : 'noeldemartin-solid-utils.js'),
         },
         rollupOptions: {
-            external: ['@noeldemartin/utils', 'jsonld', 'md5', 'n3'],
+            external: ['@noeldemartin/utils', 'jsonld', 'md5', 'n3', 'vitest'],
         },
     },
     plugins: [

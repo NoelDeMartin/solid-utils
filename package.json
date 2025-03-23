@@ -4,8 +4,14 @@
     "type": "module",
     "sideEffects": false,
     "exports": {
-        "types": "./dist/noeldemartin-solid-utils.d.ts",
-        "default": "./dist/noeldemartin-solid-utils.js"
+        ".": {
+            "types": "./dist/noeldemartin-solid-utils.d.ts",
+            "default": "./dist/noeldemartin-solid-utils.js"
+        },
+        "./testing": {
+            "types": "./dist/testing.d.ts",
+            "default": "./dist/testing.js"
+        }
     },
     "files": [
         "src",
