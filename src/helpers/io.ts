@@ -1,4 +1,4 @@
-import * as jsonld from 'jsonld';
+import jsonld from 'jsonld';
 import md5 from 'md5';
 import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
 import { BlankNode as N3BlankNode, Quad as N3Quad, Parser, Writer } from 'n3';

@@ -1,4 +1,4 @@
-import * as jsonld from 'jsonld';
+import jsonld from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 
 export type JsonLD = Partial<{
