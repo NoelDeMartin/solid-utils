@@ -36,9 +36,10 @@
     },
     "devDependencies": {
         "@noeldemartin/eslint-config-typescript": "^0.1.2",
-        "@noeldemartin/scripts": "0.3.0-next.07d9b709894cf99f2804349fb22249ae0647578b",
+        "@noeldemartin/scripts": "0.3.0-next.2dfd366e59e45ecf5ead1a617e4d0e870dbea507",
         "@noeldemartin/testing": "0.0.0-next.cd489a93da5eaad3f89a4d9ae3734f7ef911b6f6",
         "@tsconfig/node22": "^22.0.0",
+        "@types/chai": "^5.2.0",
         "@types/jsonld": "^1.5.15",
         "@types/md5": "^2.3.5",
         "@types/n3": "^1.24.1",
