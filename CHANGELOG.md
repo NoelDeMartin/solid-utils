@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Modernized tooling.
 - Dropped testing utils.
+- `installChaiPlugin` has been renamed to `installChaiSolidAssertions`.
 
 ## [v0.5.0](https://github.com/NoelDeMartin/solid-utils/releases/tag/v0.5.0) - 2025-01-05
 
