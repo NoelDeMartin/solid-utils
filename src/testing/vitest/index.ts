@@ -13,3 +13,8 @@ export type VitestSolidMatchers<R = unknown> = {
 export function installVitestSolidMatchers(): void {
     expect.extend(matchers);
 }
+
+declare module '@vitest/expect' {
+    interface Assertion<T> extends VitestSolidMatchers<T> {}
+    interface AsymmetricMatchersContaining extends VitestSolidMatchers {}
+}

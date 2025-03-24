@@ -1,19 +1,12 @@
 import { sparqlEquals, turtleEquals } from '@noeldemartin/solid-utils/testing/helpers';
 import type { EqualityResult } from '@noeldemartin/solid-utils/testing/helpers';
 
-type CustomAssertions = {
-    [assertion in keyof typeof assertions]: (typeof assertions)[assertion];
-};
-
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace Chai {
-        interface Assertion extends CustomAssertions {}
-        interface Include extends CustomAssertions {}
-    }
+export function defineChaiAssertions<T extends Record<string, (this: Chai.AssertionStatic, ...args: any[]) => void>>(
+    assertions: T): T {
+    return assertions;
 }
 
-const assertions: Record<string, (this: Chai.AssertionStatic, ...args: any[]) => void> = {
+export default defineChaiAssertions({
     turtle(graph: string): void {
         const self = this as unknown as Chai.AssertionStatic;
         const actual = self._obj as string;
@@ -39,6 +32,4 @@ const assertions: Record<string, (this: Chai.AssertionStatic, ...args: any[]) =>
 
         assert(result.success, result.message, '', result.expected, result.actual);
     },
-};
-
-export default assertions;
+});
