@@ -4,7 +4,7 @@ export type ChaiSolidAssertions = {
     [assertion in keyof typeof assertions]: (typeof assertions)[assertion];
 };
 
-export function installChaiPlugin(): void {
+export function installChaiSolidAssertions(): void {
     (globalThis as { chai?: Chai.ChaiStatic }).chai?.use((_chai) => {
         return Object.entries(assertions).forEach(([name, method]) => _chai.Assertion.addMethod(name, method));
     });
