@@ -11,6 +11,14 @@
         "./testing": {
             "types": "./dist/testing.d.ts",
             "default": "./dist/testing.js"
+        },
+        "./vitest": {
+            "types": "./dist/vitest.d.ts",
+            "default": "./dist/vitest.js"
+        },
+        "./chai": {
+            "types": "./dist/chai.d.ts",
+            "default": "./dist/chai.js"
         }
     },
     "files": [
