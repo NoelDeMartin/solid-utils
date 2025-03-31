@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v0.6.0](https://github.com/NoelDeMartin/solid-utils/releases/tag/v0.6.0) - 2025-03-31
 
 ### Changed
 
-- Modernized tooling.
-- Dropped testing utils.
+- Modernized tooling, the library is now ESM-only and has been tested with Node 22+.
+- Dropped testing utils from main bundle, import them as `@noeldemartin/solid-utils/testing`, `@noeldemartin/solid-utils/vitest`, and `@noeldemartin/solid-utils/chai` instead.
 - `installChaiPlugin` has been renamed to `installChaiSolidAssertions`.
 
 ## [v0.5.0](https://github.com/NoelDeMartin/solid-utils/releases/tag/v0.5.0) - 2025-01-05
