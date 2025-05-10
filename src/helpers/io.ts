@@ -202,6 +202,12 @@ export async function jsonldToQuads(json: JsonLD, baseIRI?: string): Promise<Qua
     return quads;
 }
 
+export async function normalizeJsonLD(json: JsonLD, baseIRI?: string): Promise<JsonLD> {
+    const quads = await jsonldToQuads(json, baseIRI);
+
+    return quadsToJsonLD(quads);
+}
+
 export function normalizeSparql(sparql: string): string {
     const quads = sparqlToQuadsSync(sparql);
 
