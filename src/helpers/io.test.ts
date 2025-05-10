@@ -226,10 +226,13 @@ describe('IO', () => {
             ],
         };
 
+        const clone = structuredClone(json);
+
         // Act
         const normalized = await normalizeJsonLD(json);
 
         // Assert
+        expect(json).toEqual(clone);
         expect(normalized).toEqual({
             '@graph': [
                 {

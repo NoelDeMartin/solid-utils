@@ -213,7 +213,7 @@ export async function jsonldToQuads(json: JsonLD, baseIRI?: string): Promise<Qua
 }
 
 export async function normalizeJsonLD(json: JsonLD, baseIRI?: string): Promise<JsonLD> {
-    const quads = await jsonldToQuads(json, baseIRI);
+    const quads = await jsonldToQuads(structuredClone(json), baseIRI);
 
     return quadsToJsonLD(quads);
 }
