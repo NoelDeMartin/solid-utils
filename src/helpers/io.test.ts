@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { jsonldToQuads, normalizeSparql, quadsToJsonLD, sparqlToQuadsSync, turtleToQuadsSync } from './io';
+import {
+    jsonldToQuads,
+    normalizeJsonLD,
+    normalizeSparql,
+    quadsToJsonLD,
+    sparqlToQuadsSync,
+    turtleToQuadsSync,
+} from './io';
 import type { Quad } from '@rdfjs/types';
 
 describe('IO', () => {
@@ -198,6 +205,45 @@ describe('IO', () => {
         expect(quads[1].predicate.value).toEqual('http://xmlns.com/foaf/0.1/name');
         expect(quads[1].object.termType).toEqual('Literal');
         expect(quads[1].object.value).toEqual('John Doe');
+    });
+
+    it('normalizes jsonld', async () => {
+        // Arrange
+        const json = {
+            '@graph': [
+                {
+                    '@context': { '@vocab': 'https://schema.org/' },
+                    '@id': '#it',
+                    '@type': 'Movie',
+                    'name': 'Spirited Away',
+                },
+                {
+                    '@context': { '@vocab': 'https://vocab.noeldemartin.com/crdt/' },
+                    '@id': '#it-metadata',
+                    '@type': 'Metadata',
+                    'resource': { '@id': '#it' },
+                },
+            ],
+        };
+
+        // Act
+        const normalized = await normalizeJsonLD(json);
+
+        // Assert
+        expect(normalized).toEqual({
+            '@graph': [
+                {
+                    '@id': '#it',
+                    '@type': ['https://schema.org/Movie'],
+                    'https://schema.org/name': [{ '@value': 'Spirited Away' }],
+                },
+                {
+                    '@id': '#it-metadata',
+                    '@type': ['https://vocab.noeldemartin.com/crdt/Metadata'],
+                    'https://vocab.noeldemartin.com/crdt/resource': [{ '@id': '#it' }],
+                },
+            ],
+        });
     });
 
     it('converts quads to jsonld', async () => {

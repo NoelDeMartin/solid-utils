@@ -123,15 +123,25 @@ function preprocessSubjects(json: JsonLD): void {
     }
 
     json['@id'] = ANONYMOUS_PREFIX + json['@id'];
+
+    for (const [field, value] of Object.entries(json)) {
+        if (typeof value !== 'object' || value === null || !('@id' in value)) {
+            continue;
+        }
+
+        preprocessSubjects(json[field] as JsonLD);
+    }
 }
 
 function postprocessSubjects(quads: Quad[]): void {
     for (const quad of quads) {
-        if (!quad.subject.value.startsWith(ANONYMOUS_PREFIX)) {
-            continue;
+        if (quad.subject.value.startsWith(ANONYMOUS_PREFIX)) {
+            quad.subject.value = quad.subject.value.slice(ANONYMOUS_PREFIX_LENGTH);
         }
 
-        quad.subject.value = quad.subject.value.slice(ANONYMOUS_PREFIX_LENGTH);
+        if (quad.object.value.startsWith(ANONYMOUS_PREFIX)) {
+            quad.object.value = quad.object.value.slice(ANONYMOUS_PREFIX_LENGTH);
+        }
     }
 }
 
