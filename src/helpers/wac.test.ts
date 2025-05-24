@@ -10,11 +10,13 @@ describe('WAC helpers', () => {
 
     it('resolves relative ACL urls', async () => {
         // Arrange
-        const server = new FakeServer();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
 
-        server.respondOnce(documentUrl, FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }));
-        server.respondOnce(
+        FakeServer.respondOnce(
+            documentUrl,
+            FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }),
+        );
+        FakeServer.respondOnce(
             `${documentUrl}.acl`,
             FakeResponse.success(`
                 @prefix acl: <http://www.w3.org/ns/auth/acl#>.
@@ -29,25 +31,27 @@ describe('WAC helpers', () => {
         );
 
         // Act
-        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, server.fetch);
+        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
 
         // Assert
         expect(url).toEqual(`${documentUrl}.acl`);
         expect(effectiveUrl).toEqual(url);
         expect(document.contains(`${documentUrl}.acl#owner`, 'rdf:type', 'acl:Authorization')).toBe(true);
 
-        expect(server.getRequests()).toHaveLength(2);
-        expect(server.getRequest(documentUrl)?.method).toEqual('HEAD');
-        expect(server.getRequest(url)).not.toBeNull();
+        expect(FakeServer.getRequests()).toHaveLength(2);
+        expect(FakeServer.getRequest(documentUrl)?.method).toEqual('HEAD');
+        expect(FakeServer.getRequest(url)).not.toBeNull();
     });
 
     it('fails with ACP resources', async () => {
         // Arrange
-        const server = new FakeServer();
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
 
-        server.respondOnce(documentUrl, FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }));
-        server.respondOnce(
+        FakeServer.respondOnce(
+            documentUrl,
+            FakeResponse.success(undefined, { Link: '<my-favorite-movie.acl>;rel="acl"' }),
+        );
+        FakeServer.respondOnce(
             `${documentUrl}.acl`,
             FakeResponse.success(undefined, {
                 Link: '<http://www.w3.org/ns/solid/acp#AccessControlResource>; rel="type"',
@@ -55,7 +59,7 @@ describe('WAC helpers', () => {
         );
 
         // Act
-        const promisedDocument = fetchSolidDocumentACL(documentUrl, server.fetch);
+        const promisedDocument = fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
 
         // Assert
         await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocolError);

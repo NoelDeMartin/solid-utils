@@ -1,7 +1,7 @@
 import { URL, fileURLToPath } from 'node:url';
 
 import dts from 'vite-plugin-dts';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     build: {
@@ -45,5 +45,8 @@ export default defineConfig({
         alias: {
             '@noeldemartin/solid-utils': fileURLToPath(new URL('./src/', import.meta.url)),
         },
+    },
+    test: {
+        setupFiles: ['./src/testing/setup.ts'],
     },
 });

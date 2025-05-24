@@ -10,10 +10,9 @@ describe('Auth helpers', () => {
 
     it('reads NSS profiles', async () => {
         // Arrange
-        const server = new FakeServer();
         const webId = 'https://alice.solidcommunity.net/profile/card#me';
 
-        server.respondOnce(
+        FakeServer.respondOnce(
             'https://alice.solidcommunity.net/profile/card',
             FakeResponse.success(
                 `
@@ -41,10 +40,10 @@ describe('Auth helpers', () => {
         );
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, { fetch: server.fetch });
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch });
 
         // Assert
-        expect(server.getRequests()).toHaveLength(1);
+        expect(FakeServer.getRequests()).toHaveLength(1);
 
         expect(profile).toEqual({
             webId,
@@ -60,12 +59,11 @@ describe('Auth helpers', () => {
 
     it('reads ESS profiles (public)', async () => {
         // Arrange
-        const server = new FakeServer();
         const webId = 'https://id.inrupt.com/alice';
 
         // The first request returns a 303 to `${webId}?lookup`,
         // but in order to simplify mocking requests we're assuming it doesn't.
-        server.respondOnce(
+        FakeServer.respondOnce(
             'https://id.inrupt.com/alice',
             FakeResponse.success(`
                 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
@@ -81,16 +79,16 @@ describe('Auth helpers', () => {
                     foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
             `),
         );
-        server.respondOnce(
+        FakeServer.respondOnce(
             'https://storage.inrupt.com/storage-hash/extendedProfile',
             new FakeResponse(undefined, undefined, 401),
         );
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, { fetch: server.fetch });
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch });
 
         // Assert
-        expect(server.getRequests()).toHaveLength(2);
+        expect(FakeServer.getRequests()).toHaveLength(2);
 
         expect(profile).toEqual({
             webId,
@@ -103,12 +101,11 @@ describe('Auth helpers', () => {
 
     it('reads ESS profiles (authenticated)', async () => {
         // Arrange
-        const server = new FakeServer();
         const webId = 'https://id.inrupt.com/alice';
 
         // The first request returns a 303 to `${webId}?lookup`,
         // but in order to simplify mocking requests we're assuming it doesn't.
-        server.respondOnce(
+        FakeServer.respondOnce(
             'https://id.inrupt.com/alice',
             FakeResponse.success(`
                 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
@@ -124,7 +121,7 @@ describe('Auth helpers', () => {
                     foaf:isPrimaryTopicOf <https://storage.inrupt.com/storage-hash/extendedProfile> .
             `),
         );
-        server.respondOnce(
+        FakeServer.respondOnce(
             'https://storage.inrupt.com/storage-hash/extendedProfile',
             FakeResponse.success(
                 `
@@ -145,10 +142,10 @@ describe('Auth helpers', () => {
         );
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, { fetch: server.fetch });
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch });
 
         // Assert
-        expect(server.getRequests()).toHaveLength(2);
+        expect(FakeServer.getRequests()).toHaveLength(2);
 
         expect(profile).toEqual({
             webId,
@@ -162,7 +159,6 @@ describe('Auth helpers', () => {
 
     it('reads use.id profiles', async () => {
         // Arrange
-        const server = new FakeServer();
         const webId = 'https://use.id/alice';
         const profileTurtle = `
             @prefix foaf: <http://xmlns.com/foaf/0.1/>.
@@ -181,17 +177,20 @@ describe('Auth helpers', () => {
 
         // The first request returns a 303 to `${webId}/profile`,
         // but in order to simplify mocking requests we're assuming it doesn't.
-        server.respondOnce('https://use.id/alice', FakeResponse.success(profileTurtle, { 'WAC-Allow': 'user="read"' }));
-        server.respondOnce(
+        FakeServer.respondOnce(
+            'https://use.id/alice',
+            FakeResponse.success(profileTurtle, { 'WAC-Allow': 'user="read"' }),
+        );
+        FakeServer.respondOnce(
             'https://use.id/alice/profile',
             FakeResponse.success(profileTurtle, { 'WAC-Allow': 'user="read"' }),
         );
 
         // Act
-        const profile = await fetchLoginUserProfile(webId, { fetch: server.fetch });
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch });
 
         // Assert
-        expect(server.getRequests()).toHaveLength(2);
+        expect(FakeServer.getRequests()).toHaveLength(2);
 
         expect(profile).toEqual({
             webId,
@@ -204,18 +203,17 @@ describe('Auth helpers', () => {
 
     it('throws errors reading required profiles', async () => {
         // Arrange
-        const server = new FakeServer();
         const webId = 'https://pod.example.com/profile/card#me';
 
-        server.respondOnce('https://pod.example.com/profile/card', FakeResponse.success('invalid turtle'));
+        FakeServer.respondOnce('https://pod.example.com/profile/card', FakeResponse.success('invalid turtle'));
 
         // Act
-        const fetchProfile = fetchLoginUserProfile(webId, { fetch: server.fetch, required: true });
+        const fetchProfile = fetchLoginUserProfile(webId, { fetch: FakeServer.fetch, required: true });
 
         // Assert
         await expect(fetchProfile).rejects.toBeInstanceOf(MalformedSolidDocumentError);
 
-        expect(server.getRequests()).toHaveLength(1);
+        expect(FakeServer.getRequests()).toHaveLength(1);
     });
 
 });
