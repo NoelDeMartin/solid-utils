@@ -2,7 +2,7 @@ import jsonld from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 
 export type JsonLD = Partial<{
-    '@context': Record<string, unknown>;
+    '@context': Record<string, unknown> | string;
     '@id': string;
     '@type': null | string | string[];
 }> & { [k: string]: unknown };

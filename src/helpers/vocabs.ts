@@ -16,6 +16,7 @@ const knownPrefixes: RDFContext = {
     schema: 'https://schema.org/',
     solid: 'http://www.w3.org/ns/solid/terms#',
     vcard: 'http://www.w3.org/2006/vcard/ns#',
+    xsd: 'http://www.w3.org/2001/XMLSchema#',
 };
 
 export function defineIRIPrefix(name: string, value: string): void {
