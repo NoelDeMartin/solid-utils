@@ -7,7 +7,7 @@ import {
     quadsToTurtle,
     sparqlToQuadsSync,
     turtleToQuadsSync,
-} from '@noeldemartin/solid-utils/helpers/io';
+} from '@noeldemartin/solid-utils/helpers/rdf';
 import type { JsonLD } from '@noeldemartin/solid-utils/helpers/jsonld';
 
 let patternsRegExpsIndex: Record<string, RegExp> = {};

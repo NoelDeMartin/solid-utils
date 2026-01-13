@@ -1,6 +1,6 @@
 import type { MatcherState, MatchersObject } from '@vitest/expect';
 
-import { normalizeSparql, normalizeTurtle } from '@noeldemartin/solid-utils/helpers/io';
+import { normalizeSparql, normalizeTurtle } from '@noeldemartin/solid-utils/helpers/rdf';
 import { jsonldEquals, sparqlEquals, turtleEquals } from '@noeldemartin/solid-utils/testing/helpers';
 import type { EqualityResult } from '@noeldemartin/solid-utils/testing/helpers';
 import type { JsonLD } from '@noeldemartin/solid-utils/helpers';

@@ -7,10 +7,10 @@ import {
     quadsToJsonLD,
     sparqlToQuadsSync,
     turtleToQuadsSync,
-} from './io';
+} from './rdf';
 import type { Quad } from '@rdfjs/types';
 
-describe('IO', () => {
+describe('RDF', () => {
 
     it('parses jsonld', async () => {
         // Arrange
