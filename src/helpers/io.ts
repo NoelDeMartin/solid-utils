@@ -49,8 +49,12 @@ export interface FetchSolidDocumentOptions {
     cache?: RequestCache;
 }
 
-export async function createSolidDocument(url: string, body: string, fetch?: Fetch): Promise<SolidDocument> {
-    fetch = fetch ?? window.fetch.bind(window);
+export async function createSolidDocument(
+    url: string,
+    body: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<SolidDocument> {
+    const fetch = options?.fetch ?? window.fetch.bind(window);
 
     const statements = await turtleToQuads(body);
 
@@ -95,8 +99,12 @@ export async function solidDocumentExists(url: string, options?: FetchSolidDocum
     }
 }
 
-export async function updateSolidDocument(url: string, body: string, fetch?: Fetch): Promise<void> {
-    fetch = fetch ?? window.fetch.bind(window);
+export async function updateSolidDocument(
+    url: string,
+    body: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<void> {
+    const fetch = options?.fetch ?? window.fetch.bind(window);
 
     await fetch(url, {
         method: 'PATCH',

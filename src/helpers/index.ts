@@ -6,3 +6,5 @@ export * from './jsonld';
 export * from './rdf';
 export * from './vocabs';
 export * from './wac';
+
+export { default as SolidClient } from './SolidClient';
