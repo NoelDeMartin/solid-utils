@@ -17,11 +17,11 @@ export default class SolidDocument extends SolidStore {
     public readonly url: string;
     public readonly headers: Headers;
 
-    public constructor(url: string, quads: Quad[], headers: Headers) {
+    public constructor(url: string, quads?: Quad[], headers?: Headers) {
         super(quads);
 
         this.url = url;
-        this.headers = headers;
+        this.headers = headers ?? new Headers();
     }
 
     public isACPResource(): boolean {

@@ -5,6 +5,7 @@ import {
     solidDocumentExists,
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
+import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 import type { FetchSolidDocumentOptions } from '@noeldemartin/solid-utils/helpers/io';
 
@@ -28,8 +29,8 @@ export default class SolidClient {
         return fetchSolidDocumentIfFound(url, this.options);
     }
 
-    public update(url: string, body: string): Promise<void> {
-        return updateSolidDocument(url, body, this.options);
+    public update(url: string, update: SparqlUpdate): Promise<void> {
+        return updateSolidDocument(url, update, this.options);
     }
 
 }

@@ -2,7 +2,8 @@ import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestError from '@noeldemartin/solid-utils/errors/NetworkRequestError';
 import NotFoundError from '@noeldemartin/solid-utils/errors/NotFoundError';
 import UnauthorizedError from '@noeldemartin/solid-utils/errors/UnauthorizedError';
-import { turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
+import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
+import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
@@ -101,7 +102,7 @@ export async function solidDocumentExists(url: string, options?: FetchSolidDocum
 
 export async function updateSolidDocument(
     url: string,
-    body: string,
+    update: SparqlUpdate,
     options?: FetchSolidDocumentOptions,
 ): Promise<void> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
@@ -109,6 +110,9 @@ export async function updateSolidDocument(
     await fetch(url, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/sparql-update' },
-        body,
+        body: `
+            DELETE DATA { ${quadsToTurtle(update.deletes)} } ;
+            INSERT DATA { ${quadsToTurtle(update.inserts)} }
+        `,
     });
 }

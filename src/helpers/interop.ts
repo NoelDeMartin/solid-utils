@@ -6,6 +6,9 @@ import {
     solidDocumentExists,
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
+import RDFNamedNode from '@noeldemartin/solid-utils/rdf/RDFNamedNode';
+import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
+import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
 
@@ -38,14 +41,16 @@ async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetc
                 <http://www.w3.org/ns/solid/terms#TypeIndex>,
                 <http://www.w3.org/ns/solid/terms#UnlistedDocument> .
         `;
-    const profileUpdateBody = `
-        INSERT DATA {
-            <${user.webId}> <http://www.w3.org/ns/solid/terms#${type}TypeIndex> <${typeIndexUrl}> .
-        }
-    `;
+    const profileUpdate = new SparqlUpdate().insert(
+        new RDFQuad(
+            new RDFNamedNode(user.webId),
+            new RDFNamedNode('http://www.w3.org/ns/solid/terms#privateTypeIndex'),
+            new RDFNamedNode(typeIndexUrl),
+        ),
+    );
 
     await createSolidDocument(typeIndexUrl, typeIndexBody, { fetch });
-    await updateSolidDocument(user.writableProfileUrl, profileUpdateBody, { fetch });
+    await updateSolidDocument(user.writableProfileUrl, profileUpdate, { fetch });
 
     if (type === 'public') {
         // TODO This is currently implemented in soukai-solid.
