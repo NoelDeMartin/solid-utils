@@ -1,7 +1,10 @@
+import { isInstanceOf } from '@noeldemartin/utils';
+
 import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
 import NotFound from '@noeldemartin/solid-utils/errors/NotFound';
 import Unauthorized from '@noeldemartin/solid-utils/errors/Unauthorized';
+import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/UnsuccessfulNetworkRequest';
 import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 
@@ -9,6 +12,14 @@ import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
+
+function assertSuccessfulResponse(response: Response, errorMessage: string): void {
+    if (Math.floor(response.status / 100) === 2) {
+        return;
+    }
+
+    throw new UnsuccessfulNetworkRequest(errorMessage, response);
+}
 
 async function fetchRawSolidDocument(
     url: string,
@@ -26,9 +37,15 @@ async function fetchRawSolidDocument(
         const fetch = options?.fetch ?? window.fetch;
         const response = await fetch(url, requestOptions);
 
-        if (response.status === 404) throw new NotFound(url);
+        if (response.status === 404) {
+            throw new NotFound(url);
+        }
 
-        if ([401, 403].includes(response.status)) throw new Unauthorized(url, response.status);
+        if ([401, 403].includes(response.status)) {
+            throw new Unauthorized(url, response.status);
+        }
+
+        assertSuccessfulResponse(response, `Error fetching document at ${url}`);
 
         const body = await response.text();
 
@@ -58,12 +75,13 @@ export async function createSolidDocument(
     const fetch = options?.fetch ?? window.fetch.bind(window);
 
     const statements = await turtleToQuads(body);
-
-    await fetch(url, {
+    const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'text/turtle' },
         body,
     });
+
+    assertSuccessfulResponse(response, `Error creating document at ${url}`);
 
     return new SolidDocument(url, statements, new Headers({}));
 }
@@ -84,7 +102,9 @@ export async function fetchSolidDocumentIfFound(
 
         return document;
     } catch (error) {
-        if (!(error instanceof NotFound)) throw error;
+        if (!isInstanceOf(error, NotFound)) {
+            throw error;
+        }
 
         return null;
     }
@@ -111,7 +131,7 @@ export async function updateSolidDocument(
         return;
     }
 
-    await fetch(url, {
+    const response = await fetch(url, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/sparql-update' },
         body: `
@@ -119,4 +139,13 @@ export async function updateSolidDocument(
             INSERT DATA { ${quadsToTurtle(update.inserts)} }
         `,
     });
+
+    assertSuccessfulResponse(response, `Error updating document at ${url}`);
+}
+
+export async function deleteSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<void> {
+    const fetch = options?.fetch ?? window.fetch.bind(window);
+    const response = await fetch(url, { method: 'DELETE' });
+
+    assertSuccessfulResponse(response, `Error deleting document at ${url}`);
 }

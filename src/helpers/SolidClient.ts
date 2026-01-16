@@ -1,5 +1,6 @@
 import {
     createSolidDocument,
+    deleteSolidDocument,
     fetchSolidDocument,
     fetchSolidDocumentIfFound,
     solidDocumentExists,
@@ -31,6 +32,10 @@ export default class SolidClient {
 
     public update(url: string, update: SparqlUpdate): Promise<void> {
         return updateSolidDocument(url, update, this.options);
+    }
+
+    public delete(url: string): Promise<void> {
+        return deleteSolidDocument(url, this.options);
     }
 
 }
