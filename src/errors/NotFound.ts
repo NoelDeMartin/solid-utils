@@ -1,6 +1,6 @@
 import { JSError } from '@noeldemartin/utils';
 
-export default class NotFoundError extends JSError {
+export default class NotFound extends JSError {
 
     public readonly url: string;
 

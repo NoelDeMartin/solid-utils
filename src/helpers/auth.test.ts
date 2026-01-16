@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 
-import { MalformedSolidDocumentError } from '@noeldemartin/solid-utils/errors';
+import { MalformedSolidDocument } from '@noeldemartin/solid-utils/errors';
 
 import { fetchLoginUserProfile } from './auth';
 
@@ -211,7 +211,7 @@ describe('Auth helpers', () => {
         const fetchProfile = fetchLoginUserProfile(webId, { fetch: FakeServer.fetch, required: true });
 
         // Assert
-        await expect(fetchProfile).rejects.toBeInstanceOf(MalformedSolidDocumentError);
+        await expect(fetchProfile).rejects.toBeInstanceOf(MalformedSolidDocument);
 
         expect(FakeServer.getRequests()).toHaveLength(1);
     });

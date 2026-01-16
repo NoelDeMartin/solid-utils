@@ -1,7 +1,7 @@
 import { arrayUnique, objectWithoutEmpty, silenced, urlParentDirectory, urlRoot, urlRoute } from '@noeldemartin/utils';
 
 import SolidStore from '../models/SolidStore';
-import UnauthorizedError from '../errors/UnauthorizedError';
+import Unauthorized from '../errors/Unauthorized';
 import type SolidDocument from '../models/SolidDocument';
 
 import { fetchSolidDocument } from './io';
@@ -53,7 +53,7 @@ async function fetchExtendedUserProfile(
 
                 addReferencedDocumentUrls(_document);
             } catch (error) {
-                if (error instanceof UnauthorizedError) {
+                if (error instanceof Unauthorized) {
                     documents[url] = false;
 
                     continue;

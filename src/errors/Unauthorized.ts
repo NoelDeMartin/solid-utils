@@ -6,7 +6,7 @@ function errorMessage(url: string, responseStatus?: number): string {
     return `Unauthorized${typeInfo}: ${url}`;
 }
 
-export default class UnauthorizedError extends JSError {
+export default class Unauthorized extends JSError {
 
     public readonly url: string;
     public readonly responseStatus?: number;

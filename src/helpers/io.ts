@@ -1,7 +1,7 @@
 import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
-import NetworkRequestError from '@noeldemartin/solid-utils/errors/NetworkRequestError';
-import NotFoundError from '@noeldemartin/solid-utils/errors/NotFoundError';
-import UnauthorizedError from '@noeldemartin/solid-utils/errors/UnauthorizedError';
+import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
+import NotFound from '@noeldemartin/solid-utils/errors/NotFound';
+import Unauthorized from '@noeldemartin/solid-utils/errors/Unauthorized';
 import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 
@@ -26,9 +26,9 @@ async function fetchRawSolidDocument(
         const fetch = options?.fetch ?? window.fetch;
         const response = await fetch(url, requestOptions);
 
-        if (response.status === 404) throw new NotFoundError(url);
+        if (response.status === 404) throw new NotFound(url);
 
-        if ([401, 403].includes(response.status)) throw new UnauthorizedError(url, response.status);
+        if ([401, 403].includes(response.status)) throw new Unauthorized(url, response.status);
 
         const body = await response.text();
 
@@ -37,11 +37,11 @@ async function fetchRawSolidDocument(
             headers: response.headers,
         };
     } catch (error) {
-        if (error instanceof UnauthorizedError) throw error;
+        if (error instanceof Unauthorized) throw error;
 
-        if (error instanceof NotFoundError) throw error;
+        if (error instanceof NotFound) throw error;
 
-        throw new NetworkRequestError(url, { cause: error });
+        throw new NetworkRequestFailed(url, { cause: error });
     }
 }
 
@@ -84,7 +84,7 @@ export async function fetchSolidDocumentIfFound(
 
         return document;
     } catch (error) {
-        if (!(error instanceof NotFoundError)) throw error;
+        if (!(error instanceof NotFound)) throw error;
 
         return null;
     }
@@ -106,6 +106,10 @@ export async function updateSolidDocument(
     options?: FetchSolidDocumentOptions,
 ): Promise<void> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
+
+    if (update.inserts.length === 0 && update.deletes.length === 0) {
+        return;
+    }
 
     await fetch(url, {
         method: 'PATCH',

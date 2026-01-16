@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 
 // eslint-disable-next-line max-len
-import UnsupportedAuthorizationProtocolError from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocolError';
+import UnsupportedAuthorizationProtocol from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocol';
 
 import { fetchSolidDocumentACL } from './wac';
 
@@ -62,7 +62,7 @@ describe('WAC helpers', () => {
         const promisedDocument = fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
 
         // Assert
-        await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocolError);
+        await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocol);
     });
 
 });

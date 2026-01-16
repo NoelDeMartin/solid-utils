@@ -8,7 +8,7 @@ function getErrorMessage(messageOrResponse: string | Response, response?: Respon
         : `Request to ${response.url} returned ${response.status} status code`;
 }
 
-export default class UnsuccessfulRequestError extends JSError {
+export default class UnsuccessfulRequest extends JSError {
 
     public response: Response;
 

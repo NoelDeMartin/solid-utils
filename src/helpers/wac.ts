@@ -1,7 +1,7 @@
 import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
 // eslint-disable-next-line max-len
-import UnsupportedAuthorizationProtocolError from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocolError';
+import UnsupportedAuthorizationProtocol from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocol';
 import { fetchSolidDocumentIfFound } from '@noeldemartin/solid-utils/helpers/io';
 import type SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
@@ -34,7 +34,7 @@ async function fetchEffectiveACL(
     }
 
     if (aclDocument.isACPResource()) {
-        throw new UnsupportedAuthorizationProtocolError(resourceUrl, 'ACP');
+        throw new UnsupportedAuthorizationProtocol(resourceUrl, 'ACP');
     }
 
     return aclDocument;

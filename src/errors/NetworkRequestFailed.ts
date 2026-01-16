@@ -1,7 +1,7 @@
 import { JSError } from '@noeldemartin/utils';
 import type { JSErrorOptions } from '@noeldemartin/utils';
 
-export default class NetworkRequestError extends JSError {
+export default class NetworkRequestFailed extends JSError {
 
     public readonly url: string;
 
