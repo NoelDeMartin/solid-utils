@@ -7,7 +7,7 @@ import type { Quad } from '@rdfjs/types';
 import type { Term } from 'n3';
 
 // eslint-disable-next-line max-len
-import MalformedSolidDocumentError, { SolidDocumentFormat } from '@noeldemartin/solid-utils/errors/MalformedSolidDocumentError';
+import MalformedSolidDocumentError, { SolidDocumentFormat } from '@noeldemartin/solid-utils/errors/MalformedSolidDocument';
 
 import { isJsonLDGraph } from '@noeldemartin/solid-utils/helpers/jsonld';
 import type { JsonLD, JsonLDGraph, JsonLDResource } from '@noeldemartin/solid-utils/helpers/jsonld';
