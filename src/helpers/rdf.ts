@@ -10,6 +10,7 @@ import type { Term } from 'n3';
 import MalformedSolidDocumentError, { SolidDocumentFormat } from '@noeldemartin/solid-utils/errors/MalformedSolidDocument';
 
 import { isJsonLDGraph } from '@noeldemartin/solid-utils/helpers/jsonld';
+import { patchJsonLDQuads } from '@noeldemartin/solid-utils/helpers/patch-quads';
 import type { JsonLD, JsonLDGraph, JsonLDResource } from '@noeldemartin/solid-utils/helpers/jsonld';
 
 const ANONYMOUS_PREFIX = 'anonymous://';
@@ -176,7 +177,8 @@ export async function jsonldToQuads(json: JsonLD, baseIRI?: string): Promise<Qua
 
     preprocessSubjects(json);
 
-    const quads = await (jsonld.toRDF(json as JsonLdDocument, { base: baseIRI }) as Promise<Quad[]>);
+    const jsonldQuads = await jsonld.toRDF(json as JsonLdDocument, { base: baseIRI });
+    const quads = patchJsonLDQuads(jsonldQuads);
 
     postprocessSubjects(quads);
 

@@ -8,6 +8,7 @@ import {
     sparqlToQuadsSync,
     turtleToQuadsSync,
 } from './rdf';
+import { RDFLiteral, RDFNamedNode, RDFQuad } from '@noeldemartin/solid-utils/rdf';
 import type { Quad } from '@rdfjs/types';
 
 describe('RDF', () => {
@@ -111,6 +112,35 @@ describe('RDF', () => {
             expect(quads[index]?.object.termType).toEqual('Literal');
             expect(quads[index]?.object.value).toEqual('Spirited Away');
         });
+    });
+
+    it('patches jsonld quads', async () => {
+        // Arrange
+        const jsonld = {
+            '@context': { '@vocab': 'https://schema.org/' },
+            '@id': '#it',
+            '@type': 'Movie',
+            'name': 'Spirited Away',
+        };
+
+        const nameQuad = new RDFQuad(
+            new RDFNamedNode('#it'),
+            new RDFNamedNode('https://schema.org/name'),
+            new RDFLiteral('Spirited Away'),
+        );
+
+        const typeQuad = new RDFQuad(
+            new RDFNamedNode('#it'),
+            new RDFNamedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+            new RDFNamedNode('https://schema.org/Movie'),
+        );
+
+        // Act
+        const quads = (await jsonldToQuads(jsonld)) as [Quad, Quad];
+
+        // Expect
+        expect(quads.filter((quad) => quad.equals(nameQuad))).toHaveLength(1);
+        expect(quads.filter((quad) => quad.equals(typeQuad))).toHaveLength(1);
     });
 
     it('normalizes sparql', () => {
