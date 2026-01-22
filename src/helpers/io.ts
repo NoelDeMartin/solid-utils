@@ -1,4 +1,4 @@
-import { isInstanceOf } from '@noeldemartin/utils';
+import { arrayFilter, isInstanceOf } from '@noeldemartin/utils';
 
 import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
@@ -146,10 +146,10 @@ export async function updateSolidDocument(
     const response = await fetch(url, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/sparql-update' },
-        body: `
-            DELETE DATA { ${quadsToTurtle(update.deletes)} } ;
-            INSERT DATA { ${quadsToTurtle(update.inserts)} }
-        `,
+        body: arrayFilter([
+            update.deletes.length > 0 && `DELETE DATA { ${quadsToTurtle(update.deletes)} }`,
+            update.inserts.length > 0 && `INSERT DATA { ${quadsToTurtle(update.inserts)} }`,
+        ]).join(' ; '),
     });
 
     assertSuccessfulResponse(response, `Error updating document at ${url}`);
