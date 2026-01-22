@@ -1,6 +1,7 @@
 import type { Quad } from '@rdfjs/types';
 
 import {
+    createSolidContainer,
     createSolidDocument,
     deleteSolidDocument,
     fetchSolidDocument,
@@ -21,7 +22,9 @@ export default class SolidClient {
         body: string | Quad[],
         options?: Omit<CreateSolidDocumentOptions, keyof FetchSolidDocumentOptions>,
     ): Promise<SolidDocument> {
-        return createSolidDocument(url, body, { ...options, ...this.options });
+        return url.endsWith('/')
+            ? createSolidContainer(url, body, { ...options, ...this.options })
+            : createSolidDocument(url, body, { ...options, ...this.options });
     }
 
     public exists(url: string): Promise<boolean> {
