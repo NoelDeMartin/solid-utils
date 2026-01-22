@@ -91,7 +91,10 @@ export async function createSolidContainer(
 
     document.addQuads(quads);
 
-    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { method, ...updateOptions } = options ?? {};
+
+    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads), updateOptions);
 
     return document;
 }
