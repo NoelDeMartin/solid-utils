@@ -1,4 +1,4 @@
-import { arrayFilter, isInstanceOf } from '@noeldemartin/utils';
+import { arrayFilter, escapeRegexText, isInstanceOf } from '@noeldemartin/utils';
 
 import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
@@ -80,7 +80,10 @@ export async function createSolidDocument(
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const method = options?.method ?? 'PUT';
     const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
-    const turtle = typeof body === 'string' ? body : quadsToTurtle(quads);
+    const turtle = (typeof body === 'string' ? body : quadsToTurtle(quads)).replace(
+        new RegExp(`<${escapeRegexText(url)}#`, 'g'),
+        '<#',
+    );
     const response = await fetch(url, {
         method,
         headers:
