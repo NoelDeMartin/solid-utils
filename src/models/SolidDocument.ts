@@ -1,4 +1,4 @@
-import { arrayFilter, parseDate, stringMatch } from '@noeldemartin/utils';
+import { arrayFilter, parseDate, stringMatch, urlResolve } from '@noeldemartin/utils';
 import type { Quad } from '@rdfjs/types';
 
 import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
@@ -57,6 +57,20 @@ export default class SolidDocument extends SolidStore {
             this.getLatestDocumentDate() ??
             null
         );
+    }
+
+    public getDescriptionUrl(): string | undefined {
+        if (!this.headers?.has('Link')) {
+            return undefined;
+        }
+
+        const matches = this.headers.get('Link')?.match(/<([^>]+)>;\s*rel="describedBy"/i);
+
+        if (!matches) {
+            return undefined;
+        }
+
+        return urlResolve(this.url, matches[1] as string);
     }
 
     protected expandIRI(iri: string): string {

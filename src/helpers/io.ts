@@ -3,10 +3,10 @@ import { arrayFilter, escapeRegexText, isInstanceOf } from '@noeldemartin/utils'
 import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
 import NotFound from '@noeldemartin/solid-utils/errors/NotFound';
+import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import Unauthorized from '@noeldemartin/solid-utils/errors/Unauthorized';
 import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/UnsuccessfulNetworkRequest';
 import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
-import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import type { Quad } from '@rdfjs/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,7 +27,10 @@ async function fetchRawSolidDocument(
     options?: FetchSolidDocumentOptions,
 ): Promise<{ body: string; headers: Headers }> {
     const requestOptions: RequestInit = {
-        headers: { Accept: 'text/turtle' },
+        headers: {
+            ...options?.headers,
+            Accept: 'text/turtle',
+        },
     };
 
     if (options?.cache) {
@@ -66,39 +69,65 @@ async function fetchRawSolidDocument(
 export interface FetchSolidDocumentOptions {
     fetch?: Fetch;
     cache?: RequestCache;
+    headers?: Record<string, string>;
 }
 
 export interface CreateSolidDocumentOptions extends FetchSolidDocumentOptions {
     method?: 'PATCH' | 'PUT';
 }
 
-export async function createSolidDocument(
+export async function createSolidContainer(
     url: string,
     body: string | Quad[],
     options?: CreateSolidDocumentOptions,
 ): Promise<SolidDocument> {
-    const fetch = options?.fetch ?? window.fetch.bind(window);
-    const method = options?.method ?? 'PUT';
-    const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
-    const turtle = (typeof body === 'string' ? body : quadsToTurtle(quads)).replace(
-        new RegExp(`<${escapeRegexText(url)}#`, 'g'),
-        '<#',
-    );
-    const response = await fetch(url, {
-        method,
-        headers:
-            method === 'PUT'
-                ? { 'Content-Type': 'text/turtle' }
-                : {
-                    'Content-Type': 'application/sparql-update',
-                    'If-None-Match': '*',
-                },
-        body: method === 'PUT' ? turtle : `INSERT DATA { ${turtle} }`,
+    const document = await createSolidDocument(url, '', {
+        ...options,
+        headers: { ...options?.headers, Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' },
     });
+
+    const descriptionUrl = document.getDescriptionUrl() ?? `${document.url}.meta`;
+    const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
+
+    document.addQuads(quads);
+
+    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads));
+
+    return document;
+}
+
+export async function createSolidDocument(
+    url: string,
+    body?: string | Quad[],
+    options?: CreateSolidDocumentOptions,
+): Promise<SolidDocument> {
+    const fetch = options?.fetch ?? window.fetch.bind(window);
+    const quads: Quad[] = [];
+    const request: { method: string; headers: Record<string, string>; body?: string } = {
+        method: options?.method ?? 'PUT',
+        headers: {
+            ...options?.headers,
+            'If-None-Match': '*',
+        },
+    };
+
+    if (body) {
+        quads.push(...(typeof body === 'string' ? await turtleToQuads(body) : body));
+
+        const turtle = (typeof body === 'string' ? body : quadsToTurtle(quads)).replace(
+            new RegExp(`<${escapeRegexText(url)}#`, 'g'),
+            '<#',
+        );
+
+        request.body = request.method === 'PUT' ? turtle : `INSERT DATA { ${turtle} }`;
+        request.headers['Content-Type'] = request.method === 'PUT' ? 'text/turtle' : 'application/sparql-update';
+    }
+
+    const response = await fetch(url, request);
 
     assertSuccessfulResponse(response, `Error creating document at ${url}`);
 
-    return new SolidDocument(url, quads, new Headers({}));
+    return new SolidDocument(url, quads, response.headers);
 }
 
 export async function fetchSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidDocument> {
@@ -148,7 +177,10 @@ export async function updateSolidDocument(
 
     const response = await fetch(url, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/sparql-update' },
+        headers: {
+            ...options?.headers,
+            'Content-Type': 'application/sparql-update',
+        },
         body: arrayFilter([
             update.deletes.length > 0 && `DELETE DATA { ${quadsToTurtle(update.deletes)} }`,
             update.inserts.length > 0 && `INSERT DATA { ${quadsToTurtle(update.inserts)} }`,
@@ -160,7 +192,10 @@ export async function updateSolidDocument(
 
 export async function deleteSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<void> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
-    const response = await fetch(url, { method: 'DELETE' });
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: options?.headers,
+    });
 
     assertSuccessfulResponse(response, `Error deleting document at ${url}`);
 }
