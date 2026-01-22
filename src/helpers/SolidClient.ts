@@ -1,3 +1,5 @@
+import type { Quad } from '@rdfjs/types';
+
 import {
     createSolidDocument,
     deleteSolidDocument,
@@ -7,15 +9,19 @@ import {
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
+import type { CreateSolidDocumentOptions, FetchSolidDocumentOptions } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
-import type { FetchSolidDocumentOptions } from '@noeldemartin/solid-utils/helpers/io';
 
 export default class SolidClient {
 
     constructor(private options: FetchSolidDocumentOptions = {}) {}
 
-    public create(url: string, body: string): Promise<SolidDocument> {
-        return createSolidDocument(url, body, this.options);
+    public create(
+        url: string,
+        body: string | Quad[],
+        options?: Omit<CreateSolidDocumentOptions, keyof FetchSolidDocumentOptions>,
+    ): Promise<SolidDocument> {
+        return createSolidDocument(url, body, { ...options, ...this.options });
     }
 
     public exists(url: string): Promise<boolean> {

@@ -7,6 +7,7 @@ import Unauthorized from '@noeldemartin/solid-utils/errors/Unauthorized';
 import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/UnsuccessfulNetworkRequest';
 import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
+import type { Quad } from '@rdfjs/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
@@ -67,23 +68,34 @@ export interface FetchSolidDocumentOptions {
     cache?: RequestCache;
 }
 
+export interface CreateSolidDocumentOptions extends FetchSolidDocumentOptions {
+    method?: 'PATCH' | 'PUT';
+}
+
 export async function createSolidDocument(
     url: string,
-    body: string,
-    options?: FetchSolidDocumentOptions,
+    body: string | Quad[],
+    options?: CreateSolidDocumentOptions,
 ): Promise<SolidDocument> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
-
-    const statements = await turtleToQuads(body);
+    const method = options?.method ?? 'PUT';
+    const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
+    const turtle = typeof body === 'string' ? body : quadsToTurtle(quads);
     const response = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'text/turtle' },
-        body,
+        method,
+        headers:
+            method === 'PUT'
+                ? { 'Content-Type': 'text/turtle' }
+                : {
+                    'Content-Type': 'application/sparql-update',
+                    'If-None-Match': '*',
+                },
+        body: method === 'PUT' ? turtle : `INSERT DATA { ${turtle} }`,
     });
 
     assertSuccessfulResponse(response, `Error creating document at ${url}`);
 
-    return new SolidDocument(url, statements, new Headers({}));
+    return new SolidDocument(url, quads, new Headers({}));
 }
 
 export async function fetchSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidDocument> {
