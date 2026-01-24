@@ -86,7 +86,7 @@ export async function createSolidContainer(
         headers: { ...options?.headers, Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' },
     });
 
-    const descriptionUrl = document.getDescriptionUrl() ?? `${document.url}.meta`;
+    const descriptionUrl = document.getDescriptionUrl();
     const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
 
     document.addQuads(quads);

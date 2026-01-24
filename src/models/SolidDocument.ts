@@ -59,18 +59,14 @@ export default class SolidDocument extends SolidStore {
         );
     }
 
-    public getDescriptionUrl(): string | undefined {
+    public getDescriptionUrl(): string {
         if (!this.headers?.has('Link')) {
-            return undefined;
+            return `${this.url}.meta`;
         }
 
         const matches = this.headers.get('Link')?.match(/<([^>]+)>;\s*rel="describedBy"/i);
 
-        if (!matches) {
-            return undefined;
-        }
-
-        return urlResolve(this.url, matches[1] as string);
+        return matches ? urlResolve(this.url, matches[1] as string) : `${this.url}.meta`;
     }
 
     protected expandIRI(iri: string): string {
