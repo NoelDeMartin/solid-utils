@@ -14,6 +14,10 @@ export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
+function relativeTurtle(base: string, turtle: string): string {
+    return turtle.replace(new RegExp(`<${escapeRegexText(base)}#`, 'g'), '<#');
+}
+
 function assertSuccessfulResponse(response: Response, errorMessage: string): void {
     if (Math.floor(response.status / 100) === 2) {
         return;
@@ -70,6 +74,7 @@ export interface FetchSolidDocumentOptions {
     fetch?: Fetch;
     cache?: RequestCache;
     headers?: Record<string, string>;
+    base?: string;
 }
 
 export interface CreateSolidDocumentOptions extends FetchSolidDocumentOptions {
@@ -94,7 +99,10 @@ export async function createSolidContainer(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { method, ...updateOptions } = options ?? {};
 
-    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads), updateOptions);
+    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads), {
+        ...updateOptions,
+        base: url,
+    });
 
     return document;
 }
@@ -117,11 +125,7 @@ export async function createSolidDocument(
     if (body) {
         quads.push(...(typeof body === 'string' ? await turtleToQuads(body) : body));
 
-        const turtle = (typeof body === 'string' ? body : quadsToTurtle(quads)).replace(
-            new RegExp(`<${escapeRegexText(url)}#`, 'g'),
-            '<#',
-        );
-
+        const turtle = relativeTurtle(options?.base ?? url, typeof body === 'string' ? body : quadsToTurtle(quads));
         request.body = request.method === 'PUT' ? turtle : `INSERT DATA { ${turtle} }`;
         request.headers['Content-Type'] = request.method === 'PUT' ? 'text/turtle' : 'application/sparql-update';
     }
@@ -173,6 +177,7 @@ export async function updateSolidDocument(
     options?: FetchSolidDocumentOptions,
 ): Promise<void> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
+    const base = options?.base ?? url;
 
     if (update.inserts.length === 0 && update.deletes.length === 0) {
         return;
@@ -185,8 +190,8 @@ export async function updateSolidDocument(
             'Content-Type': 'application/sparql-update',
         },
         body: arrayFilter([
-            update.deletes.length > 0 && `DELETE DATA { ${quadsToTurtle(update.deletes)} }`,
-            update.inserts.length > 0 && `INSERT DATA { ${quadsToTurtle(update.inserts)} }`,
+            update.deletes.length > 0 && `DELETE DATA { ${relativeTurtle(base, quadsToTurtle(update.deletes))} }`,
+            update.inserts.length > 0 && `INSERT DATA { ${relativeTurtle(base, quadsToTurtle(update.inserts))} }`,
         ]).join(' ; '),
     });
 
