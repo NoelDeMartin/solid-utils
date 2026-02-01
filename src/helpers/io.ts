@@ -91,7 +91,6 @@ export async function createSolidContainer(
         headers: { ...options?.headers, Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' },
     });
 
-    const descriptionUrl = document.getDescriptionUrl();
     const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
 
     document.addQuads(quads);
@@ -99,7 +98,7 @@ export async function createSolidContainer(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { method, ...updateOptions } = options ?? {};
 
-    await updateSolidDocument(descriptionUrl, new SparqlUpdate().insert(quads), {
+    await updateSolidDocument(document.getDescriptionUrl(), new SparqlUpdate().insert(quads), {
         ...updateOptions,
         base: url,
     });

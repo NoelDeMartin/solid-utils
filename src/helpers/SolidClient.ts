@@ -13,18 +13,22 @@ import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import type { CreateSolidDocumentOptions, FetchSolidDocumentOptions } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 
+export type SolidClientOptions = Pick<FetchSolidDocumentOptions, 'fetch' | 'cache' | 'headers'>;
+
 export default class SolidClient {
 
-    constructor(private options: FetchSolidDocumentOptions = {}) {}
+    constructor(private options: SolidClientOptions = {}) {}
 
     public create(
         url: string,
         body: string | Quad[],
-        options?: Omit<CreateSolidDocumentOptions, keyof FetchSolidDocumentOptions>,
+        options?: Omit<CreateSolidDocumentOptions, keyof SolidClientOptions>,
     ): Promise<SolidDocument> {
+        const computedOptions = { ...options, ...this.options };
+
         return url.endsWith('/')
-            ? createSolidContainer(url, body, { ...options, ...this.options })
-            : createSolidDocument(url, body, { ...options, ...this.options });
+            ? createSolidContainer(url, body, computedOptions)
+            : createSolidDocument(url, body, computedOptions);
     }
 
     public exists(url: string): Promise<boolean> {
@@ -39,8 +43,12 @@ export default class SolidClient {
         return fetchSolidDocumentIfFound(url, this.options);
     }
 
-    public update(url: string, update: SparqlUpdate): Promise<void> {
-        return updateSolidDocument(url, update, this.options);
+    public update(
+        url: string,
+        update: SparqlUpdate,
+        options?: Omit<FetchSolidDocumentOptions, keyof SolidClientOptions>,
+    ): Promise<void> {
+        return updateSolidDocument(url, update, { ...this.options, ...options });
     }
 
     public delete(url: string): Promise<void> {
