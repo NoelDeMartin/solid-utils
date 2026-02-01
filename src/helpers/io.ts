@@ -15,7 +15,7 @@ export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => 
 export declare type Fetch = TypedFetch | AnyFetch;
 
 function relativeTurtle(base: string, turtle: string): string {
-    return turtle.replace(new RegExp(`<${escapeRegexText(base)}#`, 'g'), '<#');
+    return turtle.replace(new RegExp(`<${escapeRegexText(base)}(#|>)`, 'g'), '<$1');
 }
 
 function assertSuccessfulResponse(response: Response, errorMessage: string): void {
