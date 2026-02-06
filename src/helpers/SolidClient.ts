@@ -10,7 +10,11 @@ import {
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
-import type { CreateSolidDocumentOptions, FetchSolidDocumentOptions } from '@noeldemartin/solid-utils/helpers/io';
+import type {
+    CreateSolidDocumentOptions,
+    Fetch,
+    FetchSolidDocumentOptions,
+} from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 
 export type SolidClientOptions = Pick<FetchSolidDocumentOptions, 'fetch' | 'cache' | 'headers'>;
@@ -18,6 +22,10 @@ export type SolidClientOptions = Pick<FetchSolidDocumentOptions, 'fetch' | 'cach
 export default class SolidClient {
 
     constructor(private options: SolidClientOptions = {}) {}
+
+    public getFetch(): Fetch | null {
+        return this.options.fetch ?? null;
+    }
 
     public create(
         url: string,
