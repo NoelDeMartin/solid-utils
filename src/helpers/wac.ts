@@ -17,7 +17,9 @@ async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<s
         throw new Error(`Could not find ACL Resource for '${resourceUrl}'`);
     }
 
-    return urlResolve(requireUrlParentDirectory(resourceUrl), url);
+    const directoryUrl = resourceUrl.endsWith('/') ? resourceUrl : requireUrlParentDirectory(resourceUrl);
+
+    return urlResolve(directoryUrl, url);
 }
 
 async function fetchEffectiveACL(
