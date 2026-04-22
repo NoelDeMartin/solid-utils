@@ -43,12 +43,33 @@ export default class SolidClient {
         return solidDocumentExists(url, this.options);
     }
 
-    public read(url: string): Promise<SolidDocument> {
-        return fetchSolidDocument(url, this.options);
+    public read(url: string, options?: Pick<FetchSolidDocumentOptions, 'cache' | 'headers'>): Promise<SolidDocument> {
+        const headers = {
+            ...this.options.headers,
+            ...options?.headers,
+        };
+
+        return fetchSolidDocument(url, {
+            ...this.options,
+            ...options,
+            headers,
+        });
     }
 
-    public readIfFound(url: string): Promise<SolidDocument | null> {
-        return fetchSolidDocumentIfFound(url, this.options);
+    public readIfFound(
+        url: string,
+        options?: Pick<FetchSolidDocumentOptions, 'cache' | 'headers'>,
+    ): Promise<SolidDocument | null> {
+        const headers = {
+            ...this.options.headers,
+            ...options?.headers,
+        };
+
+        return fetchSolidDocumentIfFound(url, {
+            ...this.options,
+            ...options,
+            headers,
+        });
     }
 
     public update(
