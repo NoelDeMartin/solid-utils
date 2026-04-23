@@ -1,4 +1,12 @@
-import { arrayUnique, objectWithoutEmpty, silenced, urlParentDirectory, urlRoot, urlRoute } from '@noeldemartin/utils';
+import {
+    arrayUnique,
+    objectWithoutEmpty,
+    silenced,
+    urlParentDirectory,
+    urlResolve,
+    urlRoot,
+    urlRoute,
+} from '@noeldemartin/utils';
 
 import SolidStore from '../models/SolidStore';
 import Unauthorized from '../errors/Unauthorized';
@@ -98,7 +106,9 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
     }
 
     const { store, writableProfileUrl, cloaked } = await fetchExtendedUserProfile(document, options);
-    const storageUrls = store.statements(webId, 'pim:storage').map((storage) => storage.object.value);
+    const storageUrls = store
+        .statements(webId, 'pim:storage')
+        .map((storage) => urlResolve(documentUrl, storage.object.value));
     const publicTypeIndex = store.statement(webId, 'solid:publicTypeIndex');
     const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
 

@@ -201,6 +201,46 @@ describe('Auth helpers', () => {
         });
     });
 
+    it('reads malformed storage urls', async () => {
+        // Arrange
+        const webId = 'https://alice.solidcommunity.net/profile/card#me';
+
+        FakeServer.respondOnce(
+            'https://alice.solidcommunity.net/profile/card',
+            FakeResponse.success(
+                `
+                    @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+                    @prefix pim: <http://www.w3.org/ns/pim/space#>.
+                    @prefix schema: <http://schema.org/>.
+
+                    <>
+                        a foaf:PersonalProfileDocument ;
+                        foaf:maker <#me> ;
+                        foaf:primaryTopic <#me> .
+
+                    <#me>
+                        a foaf:Person, schema:Person ;
+                        foaf:name "Alice" ;
+                        pim:storage "/" .
+                `,
+            ),
+        );
+
+        // Act
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch });
+
+        // Assert
+        expect(FakeServer.getRequests()).toHaveLength(1);
+
+        expect(profile).toEqual({
+            webId,
+            name: 'Alice',
+            cloaked: false,
+            storageUrls: ['https://alice.solidcommunity.net/'],
+            writableProfileUrl: null,
+        });
+    });
+
     it('throws errors reading required profiles', async () => {
         // Arrange
         const webId = 'https://pod.example.com/profile/card#me';

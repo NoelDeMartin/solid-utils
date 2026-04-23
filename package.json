@@ -37,7 +37,7 @@
     },
     "packageManager": "pnpm@10.27.0",
     "dependencies": {
-        "@noeldemartin/utils": "^0.7.1",
+        "@noeldemartin/utils": "next",
         "@rdfjs/types": "^2.0.1",
         "jsonld": "^8.3.3",
         "md5": "^2.3.0",
