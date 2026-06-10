@@ -14,6 +14,7 @@ import type {
     CreateSolidDocumentOptions,
     Fetch,
     FetchSolidDocumentOptions,
+    SolidResponse,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 
@@ -76,11 +77,11 @@ export default class SolidClient {
         url: string,
         update: SparqlUpdate,
         options?: Omit<FetchSolidDocumentOptions, keyof SolidClientOptions>,
-    ): Promise<{ headers: Headers } | null> {
+    ): Promise<SolidResponse | null> {
         return updateSolidDocument(url, update, { ...this.options, ...options });
     }
 
-    public delete(url: string): Promise<{ headers: Headers }> {
+    public delete(url: string): Promise<SolidResponse> {
         return deleteSolidDocument(url, this.options);
     }
 

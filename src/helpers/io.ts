@@ -81,6 +81,10 @@ export interface CreateSolidDocumentOptions extends FetchSolidDocumentOptions {
     method?: 'PATCH' | 'PUT';
 }
 
+export interface SolidResponse {
+    headers: Headers;
+}
+
 export async function createSolidContainer(
     url: string,
     body: string | Quad[],
@@ -174,7 +178,7 @@ export async function updateSolidDocument(
     url: string,
     update: SparqlUpdate,
     options?: FetchSolidDocumentOptions,
-): Promise<{ headers: Headers } | null> {
+): Promise<SolidResponse | null> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const base = options?.base ?? url;
 
@@ -199,10 +203,7 @@ export async function updateSolidDocument(
     return { headers: response.headers };
 }
 
-export async function deleteSolidDocument(
-    url: string,
-    options?: FetchSolidDocumentOptions,
-): Promise<{ headers: Headers }> {
+export async function deleteSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidResponse> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const response = await fetch(url, {
         method: 'DELETE',
