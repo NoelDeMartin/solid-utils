@@ -174,7 +174,7 @@ export async function updateSolidDocument(
     url: string,
     update: SparqlUpdate,
     options?: FetchSolidDocumentOptions,
-): Promise<Headers | null> {
+): Promise<{ headers: Headers } | null> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const base = options?.base ?? url;
 
@@ -196,10 +196,13 @@ export async function updateSolidDocument(
 
     assertSuccessfulResponse(response, `Error updating document at ${url}`);
 
-    return response.headers;
+    return { headers: response.headers };
 }
 
-export async function deleteSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<Headers> {
+export async function deleteSolidDocument(
+    url: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<{ headers: Headers }> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const response = await fetch(url, {
         method: 'DELETE',
@@ -208,5 +211,5 @@ export async function deleteSolidDocument(url: string, options?: FetchSolidDocum
 
     assertSuccessfulResponse(response, `Error deleting document at ${url}`);
 
-    return response.headers;
+    return { headers: response.headers };
 }
