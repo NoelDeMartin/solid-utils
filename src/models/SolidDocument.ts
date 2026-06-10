@@ -54,7 +54,6 @@ export default class SolidDocument extends SolidStore {
         return (
             parseDate(this.headers.get('last-modified')) ??
             parseDate(this.statement(this.url, 'purl:modified')?.object.value) ??
-            this.getLatestDocumentDate() ??
             null
         );
     }
@@ -71,14 +70,6 @@ export default class SolidDocument extends SolidStore {
 
     protected expandIRI(iri: string): string {
         return expandIRI(iri, { defaultPrefix: this.url });
-    }
-
-    private getLatestDocumentDate(): Date | null {
-        const dates = [...this.statements(undefined, 'purl:modified'), ...this.statements(undefined, 'purl:created')]
-            .map((statement) => parseDate(statement.object.value))
-            .filter((date): date is Date => date !== null);
-
-        return dates.length > 0 ? dates.reduce((a, b) => (a > b ? a : b)) : null;
     }
 
     private getPermissionsFromWAC(type: string): SolidDocumentPermission[] {
