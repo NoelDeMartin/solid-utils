@@ -76,11 +76,11 @@ export default class SolidClient {
         url: string,
         update: SparqlUpdate,
         options?: Omit<FetchSolidDocumentOptions, keyof SolidClientOptions>,
-    ): Promise<void> {
+    ): Promise<Headers | null> {
         return updateSolidDocument(url, update, { ...this.options, ...options });
     }
 
-    public delete(url: string): Promise<void> {
+    public delete(url: string): Promise<Headers> {
         return deleteSolidDocument(url, this.options);
     }
 
