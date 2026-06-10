@@ -35,7 +35,7 @@
         "test:ci": "vitest --run --reporter verbose",
         "verify": "noeldemartin-verify"
     },
-    "packageManager": "pnpm@10.27.0",
+    "packageManager": "pnpm@11.5.2",
     "dependencies": {
         "@noeldemartin/utils": "next",
         "@rdfjs/types": "^2.0.1",
