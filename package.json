@@ -44,7 +44,7 @@
         "n3": "^1.24.2"
     },
     "devDependencies": {
-        "@arethetypeswrong/cli": "^0.17.4",
+        "@arethetypeswrong/cli": "^0.18.3",
         "@noeldemartin/eslint-config-typescript": "^0.1.2",
         "@noeldemartin/eslint-plugin": "^0.1.0",
         "@noeldemartin/scripts": "next",
