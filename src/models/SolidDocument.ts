@@ -52,8 +52,10 @@ export default class SolidDocument extends SolidStore {
 
     public getLastModified(): Date | null {
         return (
+            parseDate(this.headers.get('deep-last-modified')) ??
             parseDate(this.headers.get('last-modified')) ??
             parseDate(this.statement(this.url, 'purl:modified')?.object.value) ??
+            parseDate(this.statement(this.url, 'fs:deepLastModified')?.object.value) ??
             null
         );
     }
