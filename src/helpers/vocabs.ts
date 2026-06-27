@@ -1,11 +1,4 @@
-export type RDFContext = Record<string, string>;
-
-export interface ExpandIRIOptions {
-    defaultPrefix: string;
-    extraContext: RDFContext;
-}
-
-const knownPrefixes: RDFContext = {
+export const knownPrefixes: RDFContext = {
     acl: 'http://www.w3.org/ns/auth/acl#',
     crdt: 'https://vocab.noeldemartin.com/crdt/',
     foaf: 'http://xmlns.com/foaf/0.1/',
@@ -20,6 +13,18 @@ const knownPrefixes: RDFContext = {
     vcard: 'http://www.w3.org/2006/vcard/ns#',
     xsd: 'http://www.w3.org/2001/XMLSchema#',
 };
+
+export type RDFContext = Record<string, string>;
+
+export interface ExpandIRIOptions {
+    defaultPrefix: string;
+    extraContext: RDFContext;
+}
+
+export interface ShortenIRIOptions {
+    vocab?: string;
+    context?: RDFContext;
+}
 
 export function defineIRIPrefix(name: string, value: string): void {
     knownPrefixes[name] = value;
@@ -41,4 +46,24 @@ export function expandIRI(iri: string, options: Partial<ExpandIRIOptions> = {}):
     if (!options.defaultPrefix) throw new Error(`Can't expand IRI without a default prefix: '${iri}'`);
 
     return options.defaultPrefix + prefix;
+}
+
+export function shortenIRI(iri: string, options: ShortenIRIOptions = {}): string {
+    const vocab = options.vocab;
+
+    if (vocab && iri.startsWith(vocab)) {
+        return iri.slice(vocab.length);
+    }
+
+    const context = options.context ?? {};
+
+    for (const [prefix, value] of Object.entries(context)) {
+        if (!iri.startsWith(value)) {
+            continue;
+        }
+
+        return `${prefix}:${iri.slice(value.length)}`;
+    }
+
+    return iri;
 }

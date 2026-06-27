@@ -46,14 +46,29 @@ describe('JsonLD helpers', () => {
                     'https://schema.org/name': 'Studio Ghibli movies',
                     'https://schema.org/itemListElement': [{ '@id': 'https://alice.pod.com/movies/spirited-away#it' }],
                 },
+                {
+                    '@id': 'https://alice.pod.com/movies/spirited-away#metadata',
+                    '@type': ['https://vocab.noeldemartin.com/crdt/Metadata'],
+                    'https://vocab.noeldemartin.com/crdt/createdAt': [
+                        { '@value': '2026-06-01T17:27:18.424Z', '@type': 'http://www.w3.org/2001/XMLSchema#dateTime' },
+                    ],
+                    'https://vocab.noeldemartin.com/crdt/resource': [
+                        { '@id': 'https://alice.pod.com/movies/spirited-away#it' },
+                    ],
+                    'https://vocab.noeldemartin.com/crdt/updatedAt': [
+                        { '@value': '2026-06-01T17:27:18.424Z', '@type': 'http://www.w3.org/2001/XMLSchema#dateTime' },
+                    ],
+                },
             ],
         };
 
         const compacted = {
             '@context': {
                 '@vocab': 'https://schema.org/',
+                'crdt': 'https://vocab.noeldemartin.com/crdt/',
                 'watchAction': { '@reverse': 'https://schema.org/object' },
                 'itemLists': { '@reverse': 'https://schema.org/itemListElement' },
+                'metadata': { '@reverse': 'https://vocab.noeldemartin.com/crdt/resource' },
             },
             '@id': 'https://alice.pod.com/movies/spirited-away#it',
             '@type': 'Movie',
@@ -86,6 +101,18 @@ describe('JsonLD helpers', () => {
                     'name': 'Studio Ghibli movies',
                 },
             ],
+            'metadata': {
+                '@id': 'https://alice.pod.com/movies/spirited-away#metadata',
+                '@type': 'crdt:Metadata',
+                'crdt:createdAt': {
+                    '@type': 'http://www.w3.org/2001/XMLSchema#dateTime',
+                    '@value': '2026-06-01T17:27:18.424Z',
+                },
+                'crdt:updatedAt': {
+                    '@type': 'http://www.w3.org/2001/XMLSchema#dateTime',
+                    '@value': '2026-06-01T17:27:18.424Z',
+                },
+            },
         };
 
         // Act

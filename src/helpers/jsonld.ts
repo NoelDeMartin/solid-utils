@@ -1,6 +1,9 @@
 import jsonld from 'jsonld';
-import { arrayFrom, isObject, stringToCamelCase, tap } from '@noeldemartin/utils';
+import { arrayFrom, isObject, shortId, stringToCamelCase, tap } from '@noeldemartin/utils';
 import type { JsonLdDocument } from 'jsonld';
+
+import { knownPrefixes, shortenIRI } from './vocabs';
+import type { RDFContext } from './vocabs';
 
 type ReverseRelation = { typeUrl: string; nodes: Set<string>; properties: Set<string> };
 
@@ -37,6 +40,66 @@ function resolveReverseRelation(
             (relation) => reverseRelations.set(key, relation),
         )
     );
+}
+
+function guessVocab(iri: string, context: Record<string, unknown>): { prefix: string; url: string } | undefined {
+    for (const [prefix, url] of Object.entries(knownPrefixes)) {
+        if (!iri.startsWith(url) || prefix in context) {
+            continue;
+        }
+
+        return { prefix, url };
+    }
+
+    const lastSeparatorIndex = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/'));
+
+    if (lastSeparatorIndex === -1) {
+        return;
+    }
+
+    const vocabUrl = iri.slice(0, lastSeparatorIndex + 1);
+    const localName = iri.slice(lastSeparatorIndex + 1);
+    const prefix = vocabUrl.split(/[/#]/).filter(Boolean).pop();
+
+    if (!prefix || !localName) {
+        return;
+    }
+
+    if (prefix in context) {
+        return { prefix: shortId(), url: vocabUrl };
+    }
+
+    return { prefix, url: vocabUrl };
+}
+
+function resolveIRI(iri: string, context: Record<string, unknown>): string {
+    const vocab = typeof context['@vocab'] === 'string' ? context['@vocab'] : undefined;
+    const cleanContext: RDFContext = {};
+
+    for (const [key, value] of Object.entries(context)) {
+        if (key.startsWith('@') || typeof value !== 'string') {
+            continue;
+        }
+
+        cleanContext[key] = value;
+    }
+
+    const shortened = shortenIRI(iri, { context: cleanContext, vocab });
+
+    if (shortened !== iri) {
+        return shortened;
+    }
+
+    const newVocab = guessVocab(iri, context);
+
+    if (!newVocab) {
+        return iri;
+    }
+
+    context[newVocab.prefix] = newVocab.url;
+    cleanContext[newVocab.prefix] = newVocab.url;
+
+    return shortenIRI(iri, { context: cleanContext, vocab });
 }
 
 export async function formatJsonLD(json: JsonLD, options: FormatJsonLDOptions): Promise<JsonLD> {
@@ -95,12 +158,7 @@ export async function formatJsonLD(json: JsonLD, options: FormatJsonLDOptions): 
         const subframe: Record<string, unknown> = { '@explicit': true };
 
         for (const fullPropKey of relation.properties) {
-            const parts = fullPropKey.split(/[/#]/);
-            const shortName = parts.filter(Boolean).pop() || '';
-
-            if (!shortName) {
-                continue;
-            }
+            const shortName = resolveIRI(fullPropKey, context);
 
             subframe[shortName] = {};
         }
