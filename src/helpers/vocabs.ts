@@ -1,8 +1,8 @@
 export const knownPrefixes: RDFContext = {
     acl: 'http://www.w3.org/ns/auth/acl#',
     crdt: 'https://vocab.noeldemartin.com/crdt/',
+    extra: 'https://vocab.noeldemartin.com/solid-extra/',
     foaf: 'http://xmlns.com/foaf/0.1/',
-    fs: 'https://vocab.noeldemartin.com/fs/',
     ldp: 'http://www.w3.org/ns/ldp#',
     pim: 'http://www.w3.org/ns/pim/space#',
     purl: 'http://purl.org/dc/terms/',
