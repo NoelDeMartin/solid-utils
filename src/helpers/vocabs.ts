@@ -31,7 +31,9 @@ export function defineIRIPrefix(name: string, value: string): void {
 }
 
 export function expandIRI(iri: string, options: Partial<ExpandIRIOptions> = {}): string {
-    if (iri.startsWith('http')) return iri;
+    if (/^\w+:\/\//.test(iri)) {
+        return iri;
+    }
 
     const [prefix, name] = iri.split(':');
 
