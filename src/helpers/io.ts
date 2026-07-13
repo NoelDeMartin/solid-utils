@@ -70,6 +70,24 @@ async function fetchRawSolidDocument(
     }
 }
 
+function removeDuplicates(update: SparqlUpdate): void {
+    let deleteIndex = 0;
+
+    while (deleteIndex < update.deletes.length) {
+        const deleteQuad = update.deletes[deleteIndex];
+        const insertIndex = update.inserts.findIndex((insertQuad) => insertQuad.equals(deleteQuad));
+
+        if (insertIndex !== -1) {
+            update.inserts.splice(insertIndex, 1);
+            update.deletes.splice(deleteIndex, 1);
+
+            continue;
+        }
+
+        deleteIndex++;
+    }
+}
+
 export interface FetchSolidDocumentOptions {
     fetch?: Fetch;
     cache?: RequestCache;
@@ -181,6 +199,8 @@ export async function updateSolidDocument(
 ): Promise<SolidResponse | null> {
     const fetch = options?.fetch ?? window.fetch.bind(window);
     const base = options?.base ?? url;
+
+    removeDuplicates(update);
 
     if (update.inserts.length === 0 && update.deletes.length === 0) {
         return null;
