@@ -8,10 +8,9 @@ import {
     urlRoute,
 } from '@noeldemartin/utils';
 
-import SolidStore from '../models/SolidStore';
 import Unauthorized from '../errors/Unauthorized';
 import type SolidDocument from '../models/SolidDocument';
-
+import SolidStore from '../models/SolidStore';
 import { fetchSolidDocument } from './io';
 import type { Fetch, FetchSolidDocumentOptions } from './io';
 
@@ -84,8 +83,8 @@ async function fetchExtendedUserProfile(
         writableProfileUrl: webIdDocument.isUserWritable()
             ? webIdDocument.url
             : (Object.values(documents).find(
-                (document): document is SolidDocument => !!document && document.isUserWritable(),
-            )?.url ?? null),
+                  (document): document is SolidDocument => !!document && document.isUserWritable(),
+              )?.url ?? null),
     };
 }
 
@@ -150,7 +149,7 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
 
 export interface FetchUserProfileOptions {
     fetch?: Fetch;
-    onLoaded?(store: SolidStore): Promise<unknown> | unknown;
+    onLoaded?(store: SolidStore): unknown;
 }
 
 export interface FetchLoginUserProfileOptions extends FetchUserProfileOptions {

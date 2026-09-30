@@ -1,6 +1,6 @@
+import type { JsonLD, JsonLDResource } from '@noeldemartin/solid-utils/helpers';
 import { arr, isArray, isObject, objectDeepClone, objectWithoutEmpty, tap, urlParse, uuid } from '@noeldemartin/utils';
 import type { UrlParts } from '@noeldemartin/utils';
-import type { JsonLD, JsonLDResource } from '@noeldemartin/solid-utils/helpers';
 
 export interface SubjectParts {
     containerUrl?: string;
@@ -46,8 +46,8 @@ export function parseResourceSubject(subject: string): SubjectParts {
     return !parts
         ? {}
         : objectWithoutEmpty({
-            containerUrl: getContainerUrl(parts),
-            documentName: parts.path ? parts.path.split('/').pop() : null,
-            resourceHash: parts.fragment,
-        });
+              containerUrl: getContainerUrl(parts),
+              documentName: parts.path ? parts.path.split('/').pop() : null,
+              resourceHash: parts.fragment,
+          });
 }

@@ -2,7 +2,8 @@ import { sparqlEquals, turtleEquals } from '@noeldemartin/solid-utils/testing/he
 import type { EqualityResult } from '@noeldemartin/solid-utils/testing/helpers';
 
 export function defineChaiAssertions<T extends Record<string, (this: Chai.AssertionStatic, ...args: any[]) => void>>(
-    assertions: T): T {
+    assertions: T,
+): T {
     return assertions;
 }
 

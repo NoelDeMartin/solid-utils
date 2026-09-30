@@ -1,7 +1,6 @@
 import { JSError } from '@noeldemartin/utils';
 
 export default class NotFound extends JSError {
-
     public readonly url: string;
 
     constructor(url: string) {
@@ -9,5 +8,4 @@ export default class NotFound extends JSError {
 
         this.url = url;
     }
-
 }

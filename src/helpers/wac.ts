@@ -1,10 +1,8 @@
-import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
-
-// eslint-disable-next-line max-len
 import UnsupportedAuthorizationProtocol from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocol';
 import { fetchSolidDocumentIfFound } from '@noeldemartin/solid-utils/helpers/io';
-import type SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
+import type SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
+import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
 async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<string> {
     fetch = fetch ?? window.fetch.bind(window);

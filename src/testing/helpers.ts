@@ -1,6 +1,4 @@
-import { JSError, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils';
-import type { Quad, Quad_Object } from '@rdfjs/types';
-
+import type { JsonLD } from '@noeldemartin/solid-utils/helpers/jsonld';
 import {
     jsonldToQuads,
     quadToTurtle,
@@ -8,7 +6,8 @@ import {
     sparqlToQuadsSync,
     turtleToQuadsSync,
 } from '@noeldemartin/solid-utils/helpers/rdf';
-import type { JsonLD } from '@noeldemartin/solid-utils/helpers/jsonld';
+import { JSError, arrayRemove, pull, stringMatchAll } from '@noeldemartin/utils';
+import type { Quad, Quad_Object } from '@rdfjs/types';
 
 let patternsRegExpsIndex: Record<string, RegExp> = {};
 const builtInPatterns: Record<string, string> = {
@@ -16,11 +15,9 @@ const builtInPatterns: Record<string, string> = {
 };
 
 class ExpectedQuadAssertionError extends JSError {
-
     constructor(public readonly expectedQuad: Quad) {
         super(`Couldn't find the following triple: ${quadToTurtle(expectedQuad)}`);
     }
-
 }
 
 function assertExpectedQuadsExist(expectedQuads: Quad[], actualQuads: Quad[]): void {

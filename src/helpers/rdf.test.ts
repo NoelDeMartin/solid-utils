@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { RDFLiteral, RDFNamedNode, RDFQuad } from '@noeldemartin/solid-utils/rdf';
+import type { Quad } from '@rdfjs/types';
+import { describe, expect, it } from 'vite-plus/test';
 
 import {
     jsonldToQuads,
@@ -8,17 +10,14 @@ import {
     sparqlToQuadsSync,
     turtleToQuadsSync,
 } from './rdf';
-import { RDFLiteral, RDFNamedNode, RDFQuad } from '@noeldemartin/solid-utils/rdf';
-import type { Quad } from '@rdfjs/types';
 
 describe('RDF', () => {
-
     it('parses jsonld', async () => {
         // Arrange
         const jsonld = {
             '@context': { '@vocab': 'https://schema.org/' },
             '@type': 'Movie',
-            'name': 'Spirited Away',
+            name: 'Spirited Away',
         };
 
         // Act
@@ -46,7 +45,7 @@ describe('RDF', () => {
             '@context': { '@vocab': 'https://schema.org/' },
             '@id': '#it',
             '@type': 'Movie',
-            'name': 'Spirited Away',
+            name: 'Spirited Away',
         };
 
         // Act
@@ -78,13 +77,13 @@ describe('RDF', () => {
                     '@context': { '@vocab': 'https://schema.org/' },
                     '@id': 'solid://movies/spirited-away',
                     '@type': 'Movie',
-                    'name': 'Spirited Away',
+                    name: 'Spirited Away',
                 },
                 {
                     '@context': { '@vocab': 'https://schema.org/' },
                     '@id': 'solid://movies/spirited-away',
                     '@type': 'Movie',
-                    'name': 'Spirited Away',
+                    name: 'Spirited Away',
                 },
             ],
         };
@@ -120,7 +119,7 @@ describe('RDF', () => {
             '@context': { '@vocab': 'https://schema.org/' },
             '@id': '#it',
             '@type': 'Movie',
-            'name': 'Spirited Away',
+            name: 'Spirited Away',
         };
 
         const nameQuad = new RDFQuad(
@@ -245,13 +244,13 @@ describe('RDF', () => {
                     '@context': { '@vocab': 'https://schema.org/' },
                     '@id': '#it',
                     '@type': 'Movie',
-                    'name': 'Spirited Away',
+                    name: 'Spirited Away',
                 },
                 {
                     '@context': { '@vocab': 'https://vocab.noeldemartin.com/crdt/' },
                     '@id': '#it-metadata',
                     '@type': 'Metadata',
-                    'resource': { '@id': '#it' },
+                    resource: { '@id': '#it' },
                 },
             ],
         };
@@ -303,5 +302,4 @@ describe('RDF', () => {
             ],
         });
     });
-
 });

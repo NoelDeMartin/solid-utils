@@ -15,7 +15,6 @@ export enum SolidDocumentFormat {
 }
 
 export default class MalformedSolidDocumentError extends JSError {
-
     public readonly documentUrl: string | null;
     public readonly documentFormat: SolidDocumentFormat;
     public readonly malformationDetails: string;
@@ -27,5 +26,4 @@ export default class MalformedSolidDocumentError extends JSError {
         this.documentFormat = documentFormat;
         this.malformationDetails = malformationDetails;
     }
-
 }

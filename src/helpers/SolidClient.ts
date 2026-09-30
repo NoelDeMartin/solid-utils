@@ -1,5 +1,3 @@
-import type { Quad } from '@rdfjs/types';
-
 import {
     createSolidContainer,
     createSolidDocument,
@@ -9,7 +7,6 @@ import {
     solidDocumentExists,
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
-import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import type {
     CreateSolidDocumentOptions,
     Fetch,
@@ -17,11 +14,12 @@ import type {
     SolidResponse,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
+import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
+import type { Quad } from '@rdfjs/types';
 
 export type SolidClientOptions = Pick<FetchSolidDocumentOptions, 'fetch' | 'cache' | 'headers'>;
 
 export default class SolidClient {
-
     constructor(private options: SolidClientOptions = {}) {}
 
     public getFetch(): Fetch | null {
@@ -84,5 +82,4 @@ export default class SolidClient {
     public delete(url: string): Promise<SolidResponse> {
         return deleteSolidDocument(url, this.options);
     }
-
 }

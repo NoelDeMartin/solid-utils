@@ -1,10 +1,8 @@
-import { describe, expect, it } from 'vitest';
-
-import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import { turtleToQuadsSync } from '@noeldemartin/solid-utils/helpers';
+import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('SolidDocument', () => {
-
     it('Identifies storage documents', () => {
         const hasStorageHeader = (link: string) => {
             const document = new SolidDocument('', [], new Headers({ Link: link }));
@@ -12,7 +10,6 @@ describe('SolidDocument', () => {
             return document.isStorage();
         };
 
-        /* eslint-disable max-len */
         expect(hasStorageHeader('')).toBe(false);
         expect(hasStorageHeader('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')).toBe(true);
         expect(hasStorageHeader('<http://www.w3.org/ns/pim/space#Storage>; rel="something-else"; rel="type"')).toBe(
@@ -23,7 +20,6 @@ describe('SolidDocument', () => {
                 '<http://www.w3.org/ns/pim/space#Storage>; rel="something-else", <http://example.com>; rel="type"',
             ),
         ).toBe(false);
-        /* eslint-enable max-len */
     });
 
     it('Parses last modified from header', () => {
@@ -52,5 +48,4 @@ describe('SolidDocument', () => {
 
         expect(document.getLastModified()).toEqual(new Date(1630685352000));
     });
-
 });

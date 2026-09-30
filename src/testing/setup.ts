@@ -1,4 +1,4 @@
 import { FakeServer } from '@noeldemartin/testing';
-import { beforeEach } from 'vitest';
+import { beforeEach } from 'vite-plus/test';
 
 beforeEach(() => FakeServer.reset());

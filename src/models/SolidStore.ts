@@ -1,3 +1,4 @@
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 import type {
     BlankNode,
     Literal,
@@ -9,14 +10,11 @@ import type {
     Variable,
 } from '@rdfjs/types';
 
-import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
-
 import SolidThing from './SolidThing';
 
 export type Term = NamedNode | Literal | BlankNode | Quad | Variable;
 
 export default class SolidStore {
-
     private quads: Quad[];
 
     public constructor(quads: Quad[] = []) {
@@ -84,5 +82,4 @@ export default class SolidStore {
 
         return term.equals(value);
     }
-
 }

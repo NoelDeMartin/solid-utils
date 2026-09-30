@@ -1,6 +1,16 @@
 {
     "name": "@noeldemartin/solid-utils",
     "version": "0.6.1",
+    "license": "MIT",
+    "author": "Noel De Martin",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/NoelDeMartin/solid-utils.git"
+    },
+    "files": [
+        "src",
+        "dist"
+    ],
     "type": "module",
     "sideEffects": false,
     "exports": {
@@ -21,21 +31,10 @@
             "default": "./dist/chai.js"
         }
     },
-    "files": [
-        "src",
-        "dist"
-    ],
-    "license": "MIT",
-    "author": "Noel De Martin",
-    "repository": "github:NoelDeMartin/solid-utils",
     "scripts": {
-        "build": "vite build",
-        "lint": "noeldemartin-lint src",
-        "test": "vitest --run",
-        "test:ci": "vitest --run --reporter verbose",
-        "verify": "noeldemartin-verify"
+        "build": "vp pack",
+        "test": "vp test"
     },
-    "packageManager": "pnpm@11.5.2",
     "dependencies": {
         "@noeldemartin/utils": "next",
         "@rdfjs/types": "^2.0.1",
@@ -44,33 +43,28 @@
         "n3": "^1.24.2"
     },
     "devDependencies": {
-        "@arethetypeswrong/cli": "^0.18.3",
-        "@noeldemartin/eslint-config-typescript": "^0.1.2",
-        "@noeldemartin/eslint-plugin": "^0.1.0",
+        "@arethetypeswrong/core": "^0.18.5",
         "@noeldemartin/scripts": "next",
         "@noeldemartin/testing": "next",
-        "@tsconfig/node22": "^22.0.0",
+        "@tsconfig/node26": "^26.0.1",
         "@types/chai": "^5.2.0",
         "@types/jsonld": "^1.5.15",
         "@types/md5": "^2.3.5",
-        "@types/n3": "^1.24.1",
-        "@types/node": "^22.13.10",
-        "@typescript-eslint/eslint-plugin": "^5.6.0",
-        "@vitest/expect": "^3.0.9",
-        "eslint": "^8.57.1",
-        "prettier-eslint-cli": "^8.0.1",
-        "publint": "^0.3.12",
-        "typescript": "^5.8.2",
-        "vite": "^6.2.2",
-        "vite-plugin-dts": "4.5.0",
-        "vitest": "^3.0.9"
+        "@types/n3": "^1.26.4",
+        "@types/node": "^26.6.3",
+        "publint": "^0.3.24",
+        "typescript": "~6.0.2",
+        "vite": "catalog:",
+        "vite-plus": "catalog:",
+        "vitest": "5.0.1"
     },
-    "eslintConfig": {
-        "extends": [
-            "@noeldemartin/eslint-config-typescript"
-        ]
+    "peerDependencies": {
+        "vitest": ">=5.0.0"
     },
-    "prettier": {
-        "printWidth": 120
-    }
+    "peerDependenciesMeta": {
+        "vitest": {
+            "optional": true
+        }
+    },
+    "packageManager": "pnpm@11.5.2"
 }

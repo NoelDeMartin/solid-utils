@@ -7,7 +7,6 @@ function errorMessage(url: string, responseStatus?: number): string {
 }
 
 export default class Unauthorized extends JSError {
-
     public readonly url: string;
     public readonly responseStatus?: number;
 
@@ -21,5 +20,4 @@ export default class Unauthorized extends JSError {
     public get forbidden(): boolean | undefined {
         return typeof this.responseStatus !== 'undefined' ? this.responseStatus === 403 : undefined;
     }
-
 }

@@ -11,7 +11,6 @@ export function installChaiSolidAssertions(): void {
 }
 
 declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Chai {
         interface Assertion extends ChaiSolidAssertions {}
         interface Include extends ChaiSolidAssertions {}

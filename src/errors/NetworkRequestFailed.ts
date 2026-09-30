@@ -2,7 +2,6 @@ import { JSError } from '@noeldemartin/utils';
 import type { JSErrorOptions } from '@noeldemartin/utils';
 
 export default class NetworkRequestFailed extends JSError {
-
     public readonly url: string;
 
     constructor(url: string, options?: JSErrorOptions) {
@@ -10,5 +9,4 @@ export default class NetworkRequestFailed extends JSError {
 
         this.url = url;
     }
-
 }

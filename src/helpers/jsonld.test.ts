@@ -1,9 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { formatJsonLD } from './jsonld';
 
 describe('JsonLD helpers', () => {
-
     it('formats graphs', async () => {
         // Arrange
         const graph = {
@@ -50,13 +49,19 @@ describe('JsonLD helpers', () => {
                     '@id': 'https://alice.pod.com/movies/spirited-away#metadata',
                     '@type': ['https://vocab.noeldemartin.com/crdt/Metadata'],
                     'https://vocab.noeldemartin.com/crdt/createdAt': [
-                        { '@value': '2026-06-01T17:27:18.424Z', '@type': 'http://www.w3.org/2001/XMLSchema#dateTime' },
+                        {
+                            '@value': '2026-06-01T17:27:18.424Z',
+                            '@type': 'http://www.w3.org/2001/XMLSchema#dateTime',
+                        },
                     ],
                     'https://vocab.noeldemartin.com/crdt/resource': [
                         { '@id': 'https://alice.pod.com/movies/spirited-away#it' },
                     ],
                     'https://vocab.noeldemartin.com/crdt/updatedAt': [
-                        { '@value': '2026-06-01T17:27:18.424Z', '@type': 'http://www.w3.org/2001/XMLSchema#dateTime' },
+                        {
+                            '@value': '2026-06-01T17:27:18.424Z',
+                            '@type': 'http://www.w3.org/2001/XMLSchema#dateTime',
+                        },
                     ],
                 },
             ],
@@ -65,43 +70,43 @@ describe('JsonLD helpers', () => {
         const compacted = {
             '@context': {
                 '@vocab': 'https://schema.org/',
-                'crdt': 'https://vocab.noeldemartin.com/crdt/',
-                'watchAction': { '@reverse': 'https://schema.org/object' },
-                'itemLists': { '@reverse': 'https://schema.org/itemListElement' },
-                'metadata': { '@reverse': 'https://vocab.noeldemartin.com/crdt/resource' },
+                crdt: 'https://vocab.noeldemartin.com/crdt/',
+                watchAction: { '@reverse': 'https://schema.org/object' },
+                itemLists: { '@reverse': 'https://schema.org/itemListElement' },
+                metadata: { '@reverse': 'https://vocab.noeldemartin.com/crdt/resource' },
             },
             '@id': 'https://alice.pod.com/movies/spirited-away#it',
             '@type': 'Movie',
-            'name': 'Spirited Away',
-            'watchAction': {
+            name: 'Spirited Away',
+            watchAction: {
                 '@id': 'https://alice.pod.com/movies/spirited-away#watched',
                 '@type': 'WatchAction',
             },
-            'review': [
+            review: [
                 {
                     '@id': 'https://alice.pod.com/movies/spirited-away#review-1',
                     '@type': 'Review',
-                    'reviewBody': 'First review',
+                    reviewBody: 'First review',
                 },
                 {
                     '@id': 'https://alice.pod.com/movies/spirited-away#review-2',
                     '@type': 'Review',
-                    'reviewBody': 'Second review',
+                    reviewBody: 'Second review',
                 },
             ],
-            'itemLists': [
+            itemLists: [
                 {
                     '@id': 'https://alice.pod.com/movies/spirited-away#list-1',
                     '@type': 'ItemList',
-                    'name': 'Greatest anime movies',
+                    name: 'Greatest anime movies',
                 },
                 {
                     '@id': 'https://alice.pod.com/movies/spirited-away#list-2',
                     '@type': 'ItemList',
-                    'name': 'Studio Ghibli movies',
+                    name: 'Studio Ghibli movies',
                 },
             ],
-            'metadata': {
+            metadata: {
                 '@id': 'https://alice.pod.com/movies/spirited-away#metadata',
                 '@type': 'crdt:Metadata',
                 'crdt:createdAt': {
@@ -116,10 +121,11 @@ describe('JsonLD helpers', () => {
         };
 
         // Act
-        const formatted = await formatJsonLD(graph, { resourceId: 'https://alice.pod.com/movies/spirited-away#it' });
+        const formatted = await formatJsonLD(graph, {
+            resourceId: 'https://alice.pod.com/movies/spirited-away#it',
+        });
 
         // Assert
         expect(formatted).toEqual(compacted);
     });
-
 });

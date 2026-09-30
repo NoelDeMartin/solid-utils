@@ -1,26 +1,24 @@
-import { describe, expect, it } from 'vitest';
-
 import { mintJsonLDIdentifiers } from '@noeldemartin/solid-utils/helpers';
-import { parseResourceSubject } from '@noeldemartin/solid-utils/helpers/identifiers';
 import type { JsonLD } from '@noeldemartin/solid-utils/helpers';
+import { parseResourceSubject } from '@noeldemartin/solid-utils/helpers/identifiers';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('Identifiers helpers', () => {
-
     it('mints JsonLD identifiers', () => {
         // Arrange
         const jsonld = {
             '@context': { '@vocab': 'https://schema.org/' },
             '@type': 'Recipe',
-            'name': 'Ramen',
-            'ingredients': ['Broth', 'Noodles'],
-            'instructions': [
+            name: 'Ramen',
+            ingredients: ['Broth', 'Noodles'],
+            instructions: [
                 {
                     '@type': 'HowToStep',
-                    'text': 'Boil Noodles',
+                    text: 'Boil Noodles',
                 },
                 {
                     '@type': 'HowToStep',
-                    'text': 'Dip them into the broth',
+                    text: 'Dip them into the broth',
                 },
             ],
             'http://purl.org/dc/terms/created': {
@@ -72,5 +70,4 @@ describe('Identifiers helpers', () => {
         });
         expect(parseResourceSubject('')).toEqual({});
     });
-
 });

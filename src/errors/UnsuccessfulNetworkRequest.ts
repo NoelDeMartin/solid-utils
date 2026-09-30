@@ -9,7 +9,6 @@ function getErrorMessage(messageOrResponse: string | Response, response?: Respon
 }
 
 export default class UnsuccessfulRequest extends JSError {
-
     public response: Response;
 
     constructor(response: Response);
@@ -19,5 +18,4 @@ export default class UnsuccessfulRequest extends JSError {
 
         this.response = response ?? (messageOrResponse as Response);
     }
-
 }

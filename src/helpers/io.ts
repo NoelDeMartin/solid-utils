@@ -1,15 +1,14 @@
-import { arrayFilter, escapeRegexText, isInstanceOf } from '@noeldemartin/utils';
-
-import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import NetworkRequestFailed from '@noeldemartin/solid-utils/errors/NetworkRequestFailed';
 import NotFound from '@noeldemartin/solid-utils/errors/NotFound';
-import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import Unauthorized from '@noeldemartin/solid-utils/errors/Unauthorized';
 import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/UnsuccessfulNetworkRequest';
 import { quadsToTurtle, turtleToQuads } from '@noeldemartin/solid-utils/helpers/rdf';
+import SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
+import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
+import { arrayFilter, escapeRegexText, isInstanceOf } from '@noeldemartin/utils';
 import type { Quad } from '@rdfjs/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line typescript/no-explicit-any
 export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
@@ -117,7 +116,7 @@ export async function createSolidContainer(
 
     document.addQuads(quads);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // oxlint-disable-next-line no-unused-vars
     const { method, ...updateOptions } = options ?? {};
 
     await updateSolidDocument(document.getDescriptionUrl(), new SparqlUpdate().insert(quads), {
@@ -187,7 +186,7 @@ export async function solidDocumentExists(url: string, options?: FetchSolidDocum
         const document = await fetchSolidDocument(url, options);
 
         return !document.isEmpty();
-    } catch (error) {
+    } catch {
         return false;
     }
 }

@@ -1,17 +1,16 @@
-import jsonld from 'jsonld';
-import md5 from 'md5';
-import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
-import { BlankNode as N3BlankNode, Quad as N3Quad, Parser, Writer } from 'n3';
-import type { JsonLdDocument } from 'jsonld';
-import type { Quad } from '@rdfjs/types';
-import type { Term } from 'n3';
-
-// eslint-disable-next-line max-len
-import MalformedSolidDocumentError, { SolidDocumentFormat } from '@noeldemartin/solid-utils/errors/MalformedSolidDocument';
-
+import MalformedSolidDocumentError, {
+    SolidDocumentFormat,
+} from '@noeldemartin/solid-utils/errors/MalformedSolidDocument';
 import { isJsonLDGraph } from '@noeldemartin/solid-utils/helpers/jsonld';
-import { patchJsonLDQuads } from '@noeldemartin/solid-utils/helpers/patch-quads';
 import type { JsonLD, JsonLDGraph, JsonLDResource } from '@noeldemartin/solid-utils/helpers/jsonld';
+import { patchJsonLDQuads } from '@noeldemartin/solid-utils/helpers/patch-quads';
+import { arr, arrayFilter, arrayReplace, objectWithoutEmpty, stringMatchAll, tap } from '@noeldemartin/utils';
+import type { Quad } from '@rdfjs/types';
+import jsonld from 'jsonld';
+import type { JsonLdDocument } from 'jsonld';
+import md5 from 'md5';
+import { BlankNode as N3BlankNode, Quad as N3Quad, Parser, Writer } from 'n3';
+import type { Term } from 'n3';
 
 const ANONYMOUS_PREFIX = 'anonymous://';
 const ANONYMOUS_PREFIX_LENGTH = ANONYMOUS_PREFIX.length;
@@ -27,7 +26,8 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
                     quad.subject.termType === 'BlankNode' ? quad.subject.value : null,
                 ]),
                 (ids) => ids.forEach((id) => (quadsIndexes[id] ??= new Set()).add(index)),
-            ))
+            ),
+        )
         .filter()
         .unique();
 
@@ -38,7 +38,8 @@ function normalizeBlankNodes(quads: Quad[]): Quad[] {
                 .map((index) => quads[index] as Quad)
                 .filter(({ subject: { termType, value } }) => termType === 'BlankNode' && value === originalId)
                 .map(({ predicate, object }) =>
-                    object.termType === 'BlankNode' ? predicate.value : predicate.value + object.value)
+                    object.termType === 'BlankNode' ? predicate.value : predicate.value + object.value,
+                )
                 .sorted()
                 .join(),
         );
@@ -218,6 +219,7 @@ export function parseTurtle(turtle: string, options: Partial<ParsingOptions> = {
     };
 
     return new Promise((resolve, reject) => {
+        // oxlint-disable-next-line typescript/unbound-method
         const resolveRelativeIRI = parser._resolveRelativeIRI;
 
         parser._resolveRelativeIRI = (...args) => {

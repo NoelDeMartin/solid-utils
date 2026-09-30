@@ -1,9 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { sparqlEquals, turtleEquals } from './helpers';
 
 describe('Testing helpers', () => {
-
     it('Compares sparql', () => {
         // Arrange
         const expected = 'INSERT DATA { <#me> a <http://xmlns.com/foaf/0.1/Person> . }';
@@ -325,5 +324,4 @@ describe('Testing helpers', () => {
         // Assert
         expect(result.success).toBe(false);
     });
-
 });

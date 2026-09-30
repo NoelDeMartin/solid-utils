@@ -67,7 +67,7 @@ function patchTermEquals(term: NamedNode | Literal | BlankNode | Quad | Variable
  *
  * @See https://github.com/digitalbazaar/jsonld.js/issues/243
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+// oxlint-disable-next-line typescript/no-explicit-any, typescript/explicit-module-boundary-types
 export function patchJsonLDQuads(quads: any): Quad[] {
     for (const quad of quads) {
         quad.termType = 'Quad';

@@ -2,7 +2,6 @@ import { JSError } from '@noeldemartin/utils';
 import type { JSErrorOptions } from '@noeldemartin/utils';
 
 export default class UnsupportedAuthorizationProtocol extends JSError {
-
     public readonly url: string;
     public readonly protocol: string;
 
@@ -12,5 +11,4 @@ export default class UnsupportedAuthorizationProtocol extends JSError {
         this.url = url;
         this.protocol = protocol;
     }
-
 }

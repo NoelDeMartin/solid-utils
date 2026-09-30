@@ -1,9 +1,7 @@
+import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 import type { Quad, Quad_Object, Quad_Predicate, Quad_Subject } from '@rdfjs/types';
 
-import type { SolidDocument } from '@noeldemartin/solid-utils/models';
-
 export default class SparqlUpdate {
-
     public inserts: Quad[] = [];
     public deletes: Quad[] = [];
     private document?: SolidDocument;
@@ -23,5 +21,4 @@ export default class SparqlUpdate {
 
         return this;
     }
-
 }

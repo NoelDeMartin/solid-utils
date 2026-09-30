@@ -1,9 +1,7 @@
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 import type { Quad } from '@rdfjs/types';
 
-import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
-
 export default class SolidThing {
-
     public readonly url: string;
     private quads: Quad[];
 
@@ -21,5 +19,4 @@ export default class SolidThing {
             .filter((quad) => quad.predicate.value === expandIRI(property))
             .map((quad) => quad.object.value);
     }
-
 }

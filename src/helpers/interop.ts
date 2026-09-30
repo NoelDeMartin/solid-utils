@@ -1,16 +1,15 @@
-import { uuid } from '@noeldemartin/utils';
-
+import type { SolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
 import {
     createSolidDocument,
     fetchSolidDocument,
     solidDocumentExists,
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
+import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
 import RDFNamedNode from '@noeldemartin/solid-utils/rdf/RDFNamedNode';
 import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
 import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
-import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
-import type { SolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
+import { uuid } from '@noeldemartin/utils';
 
 type TypeIndexType = 'public' | 'private';
 
@@ -27,7 +26,7 @@ async function mintTypeIndexUrl(user: SolidUserProfile, type: TypeIndexType, fet
 
 async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetch?: Fetch) {
     if (user.writableProfileUrl === null) {
-        throw new Error('Can\'t create type index without a writable profile document');
+        throw new Error("Can't create type index without a writable profile document");
     }
 
     fetch = fetch ?? window.fetch.bind(fetch);
@@ -79,7 +78,8 @@ async function findRegistrations(
                 .map((statement) => typeIndex.statements(statement.subject.value, predicate))
                 .flat()
                 .map((statement) => statement.object.value)
-                .filter((url) => !!url))
+                .filter((url) => !!url),
+        )
         .flat();
 }
 

@@ -5,7 +5,6 @@ import RDFLiteral from './RDFLiteral';
 import RDFNamedNode from './RDFNamedNode';
 
 export default class RDFQuad implements Quad {
-
     public termType = 'Quad' as const;
     public value = '' as const;
     public subject: Quad_Subject;
@@ -28,5 +27,4 @@ export default class RDFQuad implements Quad {
             this.object.equals(other.object)
         );
     }
-
 }

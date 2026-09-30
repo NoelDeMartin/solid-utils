@@ -1,13 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { FakeResponse, FakeServer } from '@noeldemartin/testing';
-
-// eslint-disable-next-line max-len
 import UnsupportedAuthorizationProtocol from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocol';
+import { FakeResponse, FakeServer } from '@noeldemartin/testing';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { fetchSolidDocumentACL } from './wac';
 
 describe('WAC helpers', () => {
-
     it('resolves relative ACL urls', async () => {
         // Arrange
         const documentUrl = 'https://example.com/alice/movies/my-favorite-movie';
@@ -111,5 +108,4 @@ describe('WAC helpers', () => {
         // Assert
         await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocol);
     });
-
 });

@@ -1,5 +1,5 @@
-import jsonld from 'jsonld';
 import { arrayFrom, isObject, shortId, stringToCamelCase, tap } from '@noeldemartin/utils';
+import jsonld from 'jsonld';
 import type { JsonLdDocument } from 'jsonld';
 
 import { knownPrefixes, shortenIRI } from './vocabs';
@@ -118,6 +118,7 @@ export async function formatJsonLD(json: JsonLD, options: FormatJsonLDOptions): 
             continue;
         }
 
+        // oxlint-disable-next-line typescript/no-base-to-string
         const nodeId = node['@id'] ? String(node['@id']) : undefined;
 
         if (!nodeId || nodeId === options.resourceId) {

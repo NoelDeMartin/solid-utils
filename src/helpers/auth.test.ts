@@ -1,13 +1,10 @@
-import { describe, expect, it } from 'vitest';
-
-import { FakeResponse, FakeServer } from '@noeldemartin/testing';
-
 import { MalformedSolidDocument } from '@noeldemartin/solid-utils/errors';
+import { FakeResponse, FakeServer } from '@noeldemartin/testing';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { fetchLoginUserProfile } from './auth';
 
 describe('Auth helpers', () => {
-
     it('reads NSS profiles', async () => {
         // Arrange
         const webId = 'https://alice.solidcommunity.net/profile/card#me';
@@ -255,5 +252,4 @@ describe('Auth helpers', () => {
 
         expect(FakeServer.getRequests()).toHaveLength(1);
     });
-
 });

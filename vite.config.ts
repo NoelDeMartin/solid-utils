@@ -1,46 +1,21 @@
 import { URL, fileURLToPath } from 'node:url';
 
-import dts from 'vite-plugin-dts';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
-    build: {
+    pack: {
+        entry: {
+            'noeldemartin-solid-utils': 'src/index.ts',
+            testing: 'src/testing/index.ts',
+            vitest: 'src/vitest/index.ts',
+            chai: 'src/chai/index.ts',
+        },
         sourcemap: true,
-        lib: {
-            entry: {
-                'noeldemartin-solid-utils': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-                'testing': fileURLToPath(new URL('./src/testing/index.ts', import.meta.url)),
-                'vitest': fileURLToPath(new URL('./src/vitest/index.ts', import.meta.url)),
-                'chai': fileURLToPath(new URL('./src/chai/index.ts', import.meta.url)),
-            },
-            formats: ['es'],
-            fileName: (_, entry) => {
-                if (entry.includes('testing')) {
-                    return 'testing.js';
-                }
-
-                if (entry.includes('vitest')) {
-                    return 'vitest.js';
-                }
-
-                if (entry.includes('chai')) {
-                    return 'chai.js';
-                }
-
-                return 'noeldemartin-solid-utils.js';
-            },
-        },
-        rollupOptions: {
-            external: ['@noeldemartin/utils', 'jsonld', 'md5', 'n3', 'vitest'],
-        },
+        dts: true,
+        fixedExtension: false,
+        publint: true,
+        attw: { profile: 'esm-only' },
     },
-    plugins: [
-        dts({
-            rollupTypes: true,
-            tsconfigPath: './tsconfig.json',
-            insertTypesEntry: true,
-        }),
-    ],
     resolve: {
         alias: {
             '@noeldemartin/solid-utils': fileURLToPath(new URL('./src/', import.meta.url)),
@@ -48,5 +23,33 @@ export default defineConfig({
     },
     test: {
         setupFiles: ['./src/testing/setup.ts'],
+    },
+    fmt: {
+        semi: true,
+        singleQuote: true,
+        tabWidth: 4,
+        printWidth: 120,
+        sortImports: true,
+    },
+    lint: {
+        options: {
+            typeAware: true,
+            typeCheck: true,
+        },
+        rules: {
+            'no-console': 'error',
+            'no-unused-expressions': 'off',
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_+$' }],
+            'typescript/consistent-type-imports': 'error',
+            'typescript/explicit-module-boundary-types': 'error',
+            'typescript/no-explicit-any': ['warn', { ignoreRestArgs: true }],
+            'typescript/no-unsafe-declaration-merging': 'off',
+        },
+        overrides: [
+            {
+                files: ['**/*.test.ts'],
+                rules: { 'typescript/no-duplicate-type-constituents': 'off' },
+            },
+        ],
     },
 });

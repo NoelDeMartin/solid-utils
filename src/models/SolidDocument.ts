@@ -1,7 +1,6 @@
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 import { arrayFilter, parseDate, stringMatch, urlResolve } from '@noeldemartin/utils';
 import type { Quad } from '@rdfjs/types';
-
-import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 
 import SolidStore from './SolidStore';
 
@@ -13,7 +12,6 @@ export enum SolidDocumentPermission {
 }
 
 export default class SolidDocument extends SolidStore {
-
     public readonly url: string;
     public readonly headers: Headers;
 
@@ -83,5 +81,4 @@ export default class SolidDocument extends SolidStore {
             publicModes.includes('control') && SolidDocumentPermission.Control,
         ]);
     }
-
 }

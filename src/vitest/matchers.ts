@@ -1,9 +1,8 @@
-import type { MatcherState, MatchersObject } from '@vitest/expect';
-
+import type { JsonLD } from '@noeldemartin/solid-utils/helpers';
 import { normalizeSparql, normalizeTurtle } from '@noeldemartin/solid-utils/helpers/rdf';
 import { jsonldEquals, sparqlEquals, turtleEquals } from '@noeldemartin/solid-utils/testing/helpers';
 import type { EqualityResult } from '@noeldemartin/solid-utils/testing/helpers';
-import type { JsonLD } from '@noeldemartin/solid-utils/helpers';
+import type { MatcherResult, MatcherState } from 'vitest';
 
 interface FormatResultOptions {
     state: MatcherState;
@@ -18,19 +17,22 @@ function formatResult(result: EqualityResult, options: FormatResultOptions) {
     const message = pass
         ? () => [result.message, utils.matcherHint(options.hint)].join('\n\n')
         : () =>
-            [
-                result.message,
-                utils.matcherHint(options.hint),
-                [
-                    `Expected: not ${utils.printExpected(options.expected)}`,
-                    `Received: ${utils.printReceived(options.received)}`,
-                ].join('\n'),
-            ].join('\n\n');
+              [
+                  result.message,
+                  utils.matcherHint(options.hint),
+                  [
+                      `Expected: not ${utils.printExpected(options.expected)}`,
+                      `Received: ${utils.printReceived(options.received)}`,
+                  ].join('\n'),
+              ].join('\n\n');
 
     return { pass, message };
 }
 
-export function defineMatchers<T extends MatchersObject>(matchers: T): T {
+// oxlint-disable-next-line typescript/no-explicit-any
+export type SolidMatcher = (this: MatcherState, received: any, ...expected: any[]) => MatcherResult;
+
+export function defineMatchers<T extends Record<string, SolidMatcher>>(matchers: T): T {
     return matchers;
 }
 

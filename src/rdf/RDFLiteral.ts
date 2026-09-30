@@ -3,7 +3,6 @@ import type { Literal, NamedNode, Term } from '@rdfjs/types';
 import { DATATYPE_STRING } from './constants';
 
 export default class RDFLiteral implements Literal {
-
     public termType = 'Literal' as const;
     public value: string;
     public language: string;
@@ -23,5 +22,4 @@ export default class RDFLiteral implements Literal {
             this.datatype.equals(other.datatype)
         );
     }
-
 }
