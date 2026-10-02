@@ -15,8 +15,8 @@
     "sideEffects": false,
     "exports": {
         ".": {
-            "types": "./dist/noeldemartin-solid-utils.d.ts",
-            "default": "./dist/noeldemartin-solid-utils.js"
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
         },
         "./testing": {
             "types": "./dist/testing.d.ts",
