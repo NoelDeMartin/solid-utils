@@ -2,6 +2,8 @@ allowBuilds:
     core-js: true
     esbuild: true
 catalog:
+    # Must match the exact version bundled by vite-plus.
+    vitest: 5.0.1
     vite: npm:@voidzero-dev/vite-plus-core@^1.0.0
     vite-plus: ^1.0.0
 overrides:
