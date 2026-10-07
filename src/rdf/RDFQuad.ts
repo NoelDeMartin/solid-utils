@@ -1,6 +1,6 @@
 import type { Quad, Quad_Graph, Quad_Object, Quad_Predicate, Quad_Subject, Term } from '@rdfjs/types';
 
-import RDFDefaultGraph from './RDFDefaultGraph';
+import { DEFAULT_GRAPH } from './constants';
 import RDFLiteral from './RDFLiteral';
 import RDFNamedNode from './RDFNamedNode';
 
@@ -16,7 +16,7 @@ export default class RDFQuad implements Quad {
         this.subject = typeof subject === 'string' ? new RDFNamedNode(subject) : subject;
         this.predicate = typeof predicate === 'string' ? new RDFNamedNode(predicate) : predicate;
         this.object = typeof object === 'string' ? new RDFLiteral(object) : object;
-        this.graph = new RDFDefaultGraph();
+        this.graph = DEFAULT_GRAPH;
     }
 
     public equals(other: Term | null | undefined): boolean {
