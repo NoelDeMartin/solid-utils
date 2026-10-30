@@ -19,7 +19,7 @@ import { uuid } from '@noeldemartin/utils';
 
 type TypeIndexType = 'public' | 'private';
 
-async function mintTypeIndexUrl(user: CompleteSolidUserProfile, type: TypeIndexType, fetch: Fetch): Promise<string> {
+async function mintTypeIndexUrl(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch): Promise<string> {
     const url = `${user.storageUrls[0]}settings/${type}TypeIndex`;
 
     return (await solidDocumentExists(url, { fetch })) ? `${url}-${uuid()}` : url;
@@ -29,8 +29,6 @@ async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexTy
     if (user.writableProfileUrl === null) {
         throw new Error("Can't create type index without a writable profile document");
     }
-
-    fetch = fetch ?? window.fetch.bind(window);
 
     const typeIndexUrl = await mintTypeIndexUrl(user, type, fetch);
     const typeIndexBody =

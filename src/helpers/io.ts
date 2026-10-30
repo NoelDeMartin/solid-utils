@@ -13,6 +13,8 @@ export declare type AnyFetch = (input: any, options?: any) => Promise<Response>;
 export declare type TypedFetch = (input: RequestInfo, options?: RequestInit) => Promise<Response>;
 export declare type Fetch = TypedFetch | AnyFetch;
 
+export const globalFetch: TypedFetch = (input, options) => globalThis.fetch(input, options);
+
 function relativeTurtle(base: string, turtle: string): string {
     return turtle.replace(new RegExp(`<${escapeRegexText(base)}(#|>)`, 'g'), '<$1');
 }
@@ -41,7 +43,7 @@ async function fetchRawSolidDocument(
     }
 
     try {
-        const fetch = options?.fetch ?? window.fetch;
+        const fetch = options?.fetch ?? globalFetch;
         const response = await fetch(url, requestOptions);
 
         if (response.status === 404) {
@@ -132,7 +134,7 @@ export async function createSolidDocument(
     body?: string | Quad[],
     options?: CreateSolidDocumentOptions,
 ): Promise<SolidDocument> {
-    const fetch = options?.fetch ?? window.fetch.bind(window);
+    const fetch = options?.fetch ?? globalFetch;
     const quads: Quad[] = [];
     const request: { method: string; headers: Record<string, string>; body?: string } = {
         method: options?.method ?? 'PUT',
@@ -196,7 +198,7 @@ export async function updateSolidDocument(
     update: SparqlUpdate,
     options?: FetchSolidDocumentOptions,
 ): Promise<SolidResponse | null> {
-    const fetch = options?.fetch ?? window.fetch.bind(window);
+    const fetch = options?.fetch ?? globalFetch;
     const base = options?.base ?? url;
 
     removeDuplicates(update);
@@ -223,7 +225,7 @@ export async function updateSolidDocument(
 }
 
 export async function deleteSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidResponse> {
-    const fetch = options?.fetch ?? window.fetch.bind(window);
+    const fetch = options?.fetch ?? globalFetch;
     const response = await fetch(url, {
         method: 'DELETE',
         headers: options?.headers,

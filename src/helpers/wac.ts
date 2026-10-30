@@ -1,11 +1,11 @@
 import UnsupportedAuthorizationProtocol from '@noeldemartin/solid-utils/errors/UnsupportedAuthorizationProtocol';
-import { fetchSolidDocumentIfFound } from '@noeldemartin/solid-utils/helpers/io';
+import { fetchSolidDocumentIfFound, globalFetch } from '@noeldemartin/solid-utils/helpers/io';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
 import type SolidDocument from '@noeldemartin/solid-utils/models/SolidDocument';
 import { objectWithoutEmpty, requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
 
-async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<string> {
-    fetch = fetch ?? window.fetch.bind(window);
+async function fetchACLResourceUrl(resourceUrl: string, fetch?: Fetch): Promise<string> {
+    fetch = fetch ?? globalFetch;
 
     const resourceHead = await fetch(resourceUrl, { method: 'HEAD' });
     const linkHeader = resourceHead.headers.get('Link') ?? '';
@@ -22,7 +22,7 @@ async function fetchACLResourceUrl(resourceUrl: string, fetch: Fetch): Promise<s
 
 async function fetchEffectiveACL(
     resourceUrl: string,
-    fetch: Fetch,
+    fetch?: Fetch,
     aclResourceUrl?: string | null,
 ): Promise<SolidDocument> {
     aclResourceUrl = aclResourceUrl ?? (await fetchACLResourceUrl(resourceUrl, fetch));
@@ -42,7 +42,7 @@ async function fetchEffectiveACL(
 
 export async function fetchSolidDocumentACL(
     documentUrl: string,
-    fetch: Fetch,
+    fetch?: Fetch,
 ): Promise<{
     url: string;
     effectiveUrl: string;
