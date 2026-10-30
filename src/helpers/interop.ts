@@ -1,4 +1,4 @@
-import type { SolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
+import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
 import {
     createSolidDocument,
     fetchSolidDocument,
@@ -13,7 +13,7 @@ import { uuid } from '@noeldemartin/utils';
 
 type TypeIndexType = 'public' | 'private';
 
-async function mintTypeIndexUrl(user: SolidUserProfile, type: TypeIndexType, fetch?: Fetch): Promise<string> {
+async function mintTypeIndexUrl(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch): Promise<string> {
     fetch = fetch ?? window.fetch.bind(fetch);
 
     const storageUrl = user.storageUrls[0];
@@ -24,7 +24,7 @@ async function mintTypeIndexUrl(user: SolidUserProfile, type: TypeIndexType, fet
         : typeIndexUrl;
 }
 
-async function createTypeIndex(user: SolidUserProfile, type: TypeIndexType, fetch?: Fetch) {
+async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch) {
     if (user.writableProfileUrl === null) {
         throw new Error("Can't create type index without a writable profile document");
     }
@@ -86,14 +86,14 @@ async function findRegistrations(
 /**
  * @deprecated Use soukai-solid instead
  */
-export async function createPublicTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
+export async function createPublicTypeIndex(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
     return createTypeIndex(user, 'public', fetch);
 }
 
 /**
  * @deprecated Use soukai-solid instead
  */
-export async function createPrivateTypeIndex(user: SolidUserProfile, fetch?: Fetch): Promise<string> {
+export async function createPrivateTypeIndex(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
     return createTypeIndex(user, 'private', fetch);
 }
 
