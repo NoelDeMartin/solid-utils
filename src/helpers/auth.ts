@@ -24,8 +24,8 @@ export interface SolidUserProfileBase {
     avatarUrl?: string;
     oidcIssuerUrl?: string;
     preferencesFileUrl?: string;
-    publicTypeIndexUrl?: string;
-    privateTypeIndexUrl?: string;
+    publicTypeIndexUrls: string[];
+    privateTypeIndexUrls: string[];
 }
 
 export interface CompleteSolidUserProfile extends SolidUserProfileBase {
@@ -155,8 +155,8 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
     const storageUrls = store
         .statements(webId, 'pim:storage')
         .map((storage) => urlResolve(documentUrl, storage.object.value));
-    const publicTypeIndex = store.statement(webId, 'solid:publicTypeIndex');
-    const privateTypeIndex = store.statement(webId, 'solid:privateTypeIndex');
+    const getTypeIndexUrls = (predicate: string) =>
+        arrayUnique(store.statements(webId, predicate).map((statement) => statement.object.value));
 
     if (!shallow && storageUrls.length === 0) {
         const storageUrl = await discoverStorageUrl(urlParentDirectory(documentUrl), requestOptions);
@@ -172,6 +172,8 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
         cloakedDocumentUrls,
         writableProfileUrl,
         storageUrls: arrayUnique(storageUrls),
+        publicTypeIndexUrls: getTypeIndexUrls('solid:publicTypeIndex'),
+        privateTypeIndexUrls: getTypeIndexUrls('solid:privateTypeIndex'),
         ...objectWithoutEmpty({
             preferencesFileUrl,
             name: store.statement(webId, 'vcard:fn')?.object.value ?? store.statement(webId, 'foaf:name')?.object.value,
@@ -179,8 +181,6 @@ async function fetchUserProfile(webId: string, options: FetchUserProfileOptions 
                 store.statement(webId, 'vcard:hasPhoto')?.object.value ??
                 store.statement(webId, 'foaf:img')?.object.value,
             oidcIssuerUrl: document.statement(webId, 'solid:oidcIssuer')?.object.value,
-            publicTypeIndexUrl: publicTypeIndex?.object.value,
-            privateTypeIndexUrl: privateTypeIndex?.object.value,
         }),
     } as SolidUserProfile;
 }

@@ -106,8 +106,8 @@ describe('Auth helpers', () => {
             oidcIssuerUrl: 'https://solidcommunity.net',
             preferencesFileUrl: 'https://alice.solidcommunity.net/settings/prefs.ttl',
             storageUrls: ['https://alice.solidcommunity.net/'],
-            privateTypeIndexUrl: 'https://alice.solidcommunity.net/settings/privateTypeIndex.ttl',
-            publicTypeIndexUrl: 'https://alice.solidcommunity.net/settings/publicTypeIndex.ttl',
+            privateTypeIndexUrls: ['https://alice.solidcommunity.net/settings/privateTypeIndex.ttl'],
+            publicTypeIndexUrls: ['https://alice.solidcommunity.net/settings/publicTypeIndex.ttl'],
             writableProfileUrl: 'https://alice.solidcommunity.net/profile/card',
         });
     });
@@ -151,6 +151,8 @@ describe('Auth helpers', () => {
             cloakedDocumentUrls: ['https://storage.inrupt.com/storage-hash/extendedProfile'],
             oidcIssuerUrl: 'https://login.inrupt.com',
             storageUrls: ['https://storage.inrupt.com/storage-hash/'],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             writableProfileUrl: null,
         });
     });
@@ -210,6 +212,8 @@ describe('Auth helpers', () => {
             cloakedDocumentUrls: [],
             oidcIssuerUrl: 'https://login.inrupt.com',
             storageUrls: ['https://storage.inrupt.com/storage-hash/'],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             writableProfileUrl: 'https://storage.inrupt.com/storage-hash/extendedProfile',
         });
     });
@@ -255,6 +259,8 @@ describe('Auth helpers', () => {
             cloakedDocumentUrls: [],
             oidcIssuerUrl: 'https://idp.use.id/',
             storageUrls: ['https://pods.use.id/storage-hash/'],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             writableProfileUrl: null,
         });
     });
@@ -296,6 +302,8 @@ describe('Auth helpers', () => {
             shallow: false,
             cloakedDocumentUrls: [],
             storageUrls: ['https://alice.solidcommunity.net/'],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             writableProfileUrl: null,
         });
     });
@@ -335,7 +343,7 @@ describe('Auth helpers', () => {
         // Assert
         expect(FakeServer.getRequests()).toHaveLength(3);
         expect(profile.preferencesFileUrl).toEqual('https://pod.example.com/settings/prefs.ttl');
-        expect(profile.privateTypeIndexUrl).toEqual('https://pod.example.com/settings/privateTypeIndex.ttl');
+        expect(profile.privateTypeIndexUrls).toEqual(['https://pod.example.com/settings/privateTypeIndex.ttl']);
         expect(profile.cloakedDocumentUrls).toEqual([]);
     });
 
@@ -352,7 +360,7 @@ describe('Auth helpers', () => {
         // Assert
         expect(FakeServer.getRequests()).toHaveLength(2);
         expect(profile.preferencesFileUrl).toEqual('https://pod.example.com/settings/prefs.ttl');
-        expect(profile.privateTypeIndexUrl).toBeUndefined();
+        expect(profile.privateTypeIndexUrls).toEqual([]);
         expect(profile.cloakedDocumentUrls).toEqual(['https://pod.example.com/settings/prefs.ttl']);
     });
 
@@ -379,8 +387,43 @@ describe('Auth helpers', () => {
 
         // Assert
         expect(FakeServer.getRequests()).toHaveLength(3);
-        expect(profile.privateTypeIndexUrl).toEqual('https://pod.example.com/settings/privateTypeIndex.ttl');
+        expect(profile.privateTypeIndexUrls).toEqual(['https://pod.example.com/settings/privateTypeIndex.ttl']);
         expect(profile.cloakedDocumentUrls).toEqual(['https://pod.example.com/profile/extended']);
+    });
+
+    it('reads profiles with multiple type indexes', async () => {
+        // Arrange
+        const webId = 'https://pod.example.com/profile/card#me';
+
+        respondWithProfile(
+            webId,
+            `
+                <#me>
+                    pim:preferencesFile </settings/prefs.ttl> ;
+                    solid:publicTypeIndex </settings/publicTypeIndex.ttl>, </settings/publicTypeIndex-2.ttl> .
+            `,
+        );
+        respondWithDocument(
+            'https://pod.example.com/settings/prefs.ttl',
+            `
+                <${webId}>
+                    solid:publicTypeIndex </settings/publicTypeIndex.ttl> ;
+                    solid:privateTypeIndex </settings/privateTypeIndex.ttl>, </settings/privateTypeIndex-2.ttl> .
+            `,
+        );
+
+        // Act
+        const profile = await fetchLoginUserProfile(webId, { fetch: FakeServer.fetch, required: true });
+
+        // Assert
+        expect(profile.publicTypeIndexUrls).toEqual([
+            'https://pod.example.com/settings/publicTypeIndex.ttl',
+            'https://pod.example.com/settings/publicTypeIndex-2.ttl',
+        ]);
+        expect(profile.privateTypeIndexUrls).toEqual([
+            'https://pod.example.com/settings/privateTypeIndex.ttl',
+            'https://pod.example.com/settings/privateTypeIndex-2.ttl',
+        ]);
     });
 
     it('reads shallow profiles', async () => {
@@ -413,6 +456,8 @@ describe('Auth helpers', () => {
             oidcIssuerUrl: 'https://idp.example.com',
             preferencesFileUrl: 'https://pod.example.com/settings/prefs.ttl',
             storageUrls: ['https://pod.example.com/'],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             writableProfileUrl: null,
         });
     });

@@ -18,6 +18,8 @@ describe('Interop helpers', () => {
             storageUrls: [storageUrl],
             writableProfileUrl: profileUrl,
             cloakedDocumentUrls: [],
+            publicTypeIndexUrls: [],
+            privateTypeIndexUrls: [],
             ...attributes,
         };
     }
