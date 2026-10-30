@@ -4,33 +4,18 @@
  */
 
 import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
-import {
-    createSolidDocument,
-    fetchSolidDocument,
-    solidDocumentExists,
-    updateSolidDocument,
-} from '@noeldemartin/solid-utils/helpers/io';
+import { linkFromDocument, mintSettingsDocumentUrl } from '@noeldemartin/solid-utils/helpers/interop';
+import { createSolidDocument, fetchSolidDocument } from '@noeldemartin/solid-utils/helpers/io';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
-import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
-import RDFNamedNode from '@noeldemartin/solid-utils/rdf/RDFNamedNode';
-import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
-import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
-import { uuid } from '@noeldemartin/utils';
 
 type TypeIndexType = 'public' | 'private';
-
-async function mintTypeIndexUrl(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch): Promise<string> {
-    const url = `${user.storageUrls[0]}settings/${type}TypeIndex`;
-
-    return (await solidDocumentExists(url, { fetch })) ? `${url}-${uuid()}` : url;
-}
 
 async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch) {
     if (user.writableProfileUrl === null) {
         throw new Error("Can't create type index without a writable profile document");
     }
 
-    const typeIndexUrl = await mintTypeIndexUrl(user, type, fetch);
+    const typeIndexUrl = await mintSettingsDocumentUrl(user, `${type}TypeIndex`, fetch);
     const typeIndexBody =
         type === 'public'
             ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
@@ -41,17 +26,7 @@ async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexTy
         `;
 
     await createSolidDocument(typeIndexUrl, typeIndexBody, { fetch });
-    await updateSolidDocument(
-        user.writableProfileUrl,
-        new SparqlUpdate().insert(
-            new RDFQuad(
-                new RDFNamedNode(user.webId),
-                new RDFNamedNode(expandIRI(`solid:${type}TypeIndex`)),
-                new RDFNamedNode(typeIndexUrl),
-            ),
-        ),
-        { fetch },
-    );
+    await linkFromDocument(user.writableProfileUrl, user.webId, `solid:${type}TypeIndex`, typeIndexUrl, fetch);
 
     return typeIndexUrl;
 }

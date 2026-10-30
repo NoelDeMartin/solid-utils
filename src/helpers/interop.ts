@@ -8,13 +8,23 @@ import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
 import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import { uuid } from '@noeldemartin/utils';
 
-async function mintSettingsDocumentUrl(user: CompleteSolidUserProfile, name: string, fetch?: Fetch): Promise<string> {
+export async function mintSettingsDocumentUrl(
+    user: CompleteSolidUserProfile,
+    name: string,
+    fetch?: Fetch,
+): Promise<string> {
     const url = `${user.storageUrls[0]}settings/${name}`;
 
     return (await solidDocumentExists(url, { fetch })) ? `${url}-${uuid()}` : url;
 }
 
-async function linkFromDocument(documentUrl: string, webId: string, predicate: string, url: string, fetch?: Fetch) {
+export async function linkFromDocument(
+    documentUrl: string,
+    webId: string,
+    predicate: string,
+    url: string,
+    fetch?: Fetch,
+): Promise<void> {
     const update = new SparqlUpdate().insert(
         new RDFQuad(new RDFNamedNode(webId), new RDFNamedNode(expandIRI(predicate)), new RDFNamedNode(url)),
     );
