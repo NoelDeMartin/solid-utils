@@ -4,12 +4,14 @@ import type { Quad } from '@rdfjs/types';
 
 import SolidStore from './SolidStore';
 
-export enum SolidDocumentPermission {
-    Read = 'read',
-    Write = 'write',
-    Append = 'append',
-    Control = 'control',
-}
+export const SolidDocumentPermissions = {
+    Read: 'read',
+    Write: 'write',
+    Append: 'append',
+    Control: 'control',
+} as const;
+
+export type SolidDocumentPermission = (typeof SolidDocumentPermissions)[keyof typeof SolidDocumentPermissions];
 
 export default class SolidDocument extends SolidStore {
     public readonly url: string;
@@ -37,7 +39,7 @@ export default class SolidDocument extends SolidStore {
     }
 
     public isUserWritable(): boolean {
-        return this.getUserPermissions().includes(SolidDocumentPermission.Write);
+        return this.getUserPermissions().includes(SolidDocumentPermissions.Write);
     }
 
     public getUserPermissions(): SolidDocumentPermission[] {
@@ -75,10 +77,10 @@ export default class SolidDocument extends SolidStore {
         const publicModes = stringMatch<2>(wacAllow, new RegExp(`${type}="([^"]+)"`))?.[1] ?? '';
 
         return arrayFilter([
-            publicModes.includes('read') && SolidDocumentPermission.Read,
-            publicModes.includes('write') && SolidDocumentPermission.Write,
-            publicModes.includes('append') && SolidDocumentPermission.Append,
-            publicModes.includes('control') && SolidDocumentPermission.Control,
+            publicModes.includes('read') && SolidDocumentPermissions.Read,
+            publicModes.includes('write') && SolidDocumentPermissions.Write,
+            publicModes.includes('append') && SolidDocumentPermissions.Append,
+            publicModes.includes('control') && SolidDocumentPermissions.Control,
         ]);
     }
 }
