@@ -1,4 +1,5 @@
 export * from './auth';
+export * from './deprecated';
 export * from './identifiers';
 export * from './interop';
 export * from './io';

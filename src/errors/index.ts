@@ -1,3 +1,4 @@
+export { default as CloakedPreferencesFile } from './CloakedPreferencesFile';
 export { default as MalformedSolidDocument, SolidDocumentFormat } from './MalformedSolidDocument';
 export { default as NetworkRequestFailed } from './NetworkRequestFailed';
 export { default as NotFound } from './NotFound';

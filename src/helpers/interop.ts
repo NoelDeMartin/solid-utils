@@ -1,120 +1,56 @@
+import CloakedPreferencesFile from '@noeldemartin/solid-utils/errors/CloakedPreferencesFile';
 import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
-import {
-    createSolidDocument,
-    fetchSolidDocument,
-    solidDocumentExists,
-    updateSolidDocument,
-} from '@noeldemartin/solid-utils/helpers/io';
+import { createSolidDocument, solidDocumentExists, updateSolidDocument } from '@noeldemartin/solid-utils/helpers/io';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
+import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 import RDFNamedNode from '@noeldemartin/solid-utils/rdf/RDFNamedNode';
 import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
 import SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
 import { uuid } from '@noeldemartin/utils';
 
-type TypeIndexType = 'public' | 'private';
+async function mintSettingsDocumentUrl(user: CompleteSolidUserProfile, name: string, fetch: Fetch): Promise<string> {
+    const url = `${user.storageUrls[0]}settings/${name}`;
 
-async function mintTypeIndexUrl(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch): Promise<string> {
-    fetch = fetch ?? window.fetch.bind(fetch);
-
-    const storageUrl = user.storageUrls[0];
-    const typeIndexUrl = `${storageUrl}settings/${type}TypeIndex`;
-
-    return (await solidDocumentExists(typeIndexUrl, { fetch }))
-        ? `${storageUrl}settings/${type}TypeIndex-${uuid()}`
-        : typeIndexUrl;
+    return (await solidDocumentExists(url, { fetch })) ? `${url}-${uuid()}` : url;
 }
 
-async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexType, fetch?: Fetch) {
-    if (user.writableProfileUrl === null) {
-        throw new Error("Can't create type index without a writable profile document");
-    }
-
-    fetch = fetch ?? window.fetch.bind(fetch);
-
-    const typeIndexUrl = await mintTypeIndexUrl(user, type, fetch);
-    const typeIndexBody =
-        type === 'public'
-            ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
-            : `
-            <> a
-                <http://www.w3.org/ns/solid/terms#TypeIndex>,
-                <http://www.w3.org/ns/solid/terms#UnlistedDocument> .
-        `;
-    const profileUpdate = new SparqlUpdate().insert(
-        new RDFQuad(
-            new RDFNamedNode(user.webId),
-            new RDFNamedNode('http://www.w3.org/ns/solid/terms#privateTypeIndex'),
-            new RDFNamedNode(typeIndexUrl),
-        ),
+async function linkFromDocument(documentUrl: string, webId: string, predicate: string, url: string, fetch: Fetch) {
+    const update = new SparqlUpdate().insert(
+        new RDFQuad(new RDFNamedNode(webId), new RDFNamedNode(expandIRI(predicate)), new RDFNamedNode(url)),
     );
 
-    await createSolidDocument(typeIndexUrl, typeIndexBody, { fetch });
-    await updateSolidDocument(user.writableProfileUrl, profileUpdate, { fetch });
+    await updateSolidDocument(documentUrl, update, { fetch });
+}
 
-    if (type === 'public') {
-        // TODO This is currently implemented in soukai-solid.
+export async function findOrCreatePreferencesFile(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
+    if (user.preferencesFileUrl) {
+        return user.preferencesFileUrl;
     }
 
-    return typeIndexUrl;
-}
+    if (user.writableProfileUrl === null) {
+        throw new Error("Can't create preferences file without a writable profile document");
+    }
 
-/**
- * @deprecated Use soukai-solid instead
- */
-async function findRegistrations(
-    typeIndexUrl: string,
-    type: string | string[],
-    predicate: string,
-    fetch?: Fetch,
-): Promise<string[]> {
-    const typeIndex = await fetchSolidDocument(typeIndexUrl, { fetch });
-    const types = Array.isArray(type) ? type : [type];
+    const cloakedDocumentUrl = user.cloakedDocumentUrls.find((url) =>
+        user.storageUrls.some((storageUrl) => url.startsWith(storageUrl)),
+    );
 
-    return types
-        .map((_type) =>
-            typeIndex
-                .statements(undefined, 'rdf:type', 'solid:TypeRegistration')
-                .filter((statement) => typeIndex.contains(statement.subject.value, 'solid:forClass', _type))
-                .map((statement) => typeIndex.statements(statement.subject.value, predicate))
-                .flat()
-                .map((statement) => statement.object.value)
-                .filter((url) => !!url),
-        )
-        .flat();
-}
+    if (cloakedDocumentUrl) {
+        throw new CloakedPreferencesFile(
+            cloakedDocumentUrl,
+            `Can't create preferences file because the document at ${cloakedDocumentUrl} ` +
+                'could not be read (it may already link one)',
+        );
+    }
 
-/**
- * @deprecated Use soukai-solid instead
- */
-export async function createPublicTypeIndex(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
-    return createTypeIndex(user, 'public', fetch);
-}
+    fetch = fetch ?? window.fetch.bind(window);
 
-/**
- * @deprecated Use soukai-solid instead
- */
-export async function createPrivateTypeIndex(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
-    return createTypeIndex(user, 'private', fetch);
-}
+    const preferencesFileUrl = await mintSettingsDocumentUrl(user, 'preferences', fetch);
 
-/**
- * @deprecated Use soukai-solid instead
- */
-export async function findContainerRegistrations(
-    typeIndexUrl: string,
-    type: string | string[],
-    fetch?: Fetch,
-): Promise<string[]> {
-    return findRegistrations(typeIndexUrl, type, 'solid:instanceContainer', fetch);
-}
+    await createSolidDocument(preferencesFileUrl, '<> a <http://www.w3.org/ns/pim/space#ConfigurationFile> .', {
+        fetch,
+    });
+    await linkFromDocument(user.writableProfileUrl, user.webId, 'pim:preferencesFile', preferencesFileUrl, fetch);
 
-/**
- * @deprecated Use soukai-solid instead
- */
-export async function findInstanceRegistrations(
-    typeIndexUrl: string,
-    type: string | string[],
-    fetch?: Fetch,
-): Promise<string[]> {
-    return findRegistrations(typeIndexUrl, type, 'solid:instance', fetch);
+    return preferencesFileUrl;
 }
