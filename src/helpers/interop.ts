@@ -1,7 +1,7 @@
 import CloakedPreferencesFile from '@noeldemartin/solid-utils/errors/CloakedPreferencesFile';
-import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
+import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/authentication';
 import { createSolidDocument, solidDocumentExists, updateSolidDocument } from '@noeldemartin/solid-utils/helpers/io';
-import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
+import type { FetchOptions } from '@noeldemartin/solid-utils/helpers/io';
 import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
 import RDFNamedNode from '@noeldemartin/solid-utils/rdf/RDFNamedNode';
 import RDFQuad from '@noeldemartin/solid-utils/rdf/RDFQuad';
@@ -11,11 +11,11 @@ import { uuid } from '@noeldemartin/utils';
 export async function mintSettingsDocumentUrl(
     user: CompleteSolidUserProfile,
     name: string,
-    fetch?: Fetch,
+    options: FetchOptions = {},
 ): Promise<string> {
     const url = `${user.storageUrls[0]}settings/${name}`;
 
-    return (await solidDocumentExists(url, { fetch })) ? `${url}-${uuid()}` : url;
+    return (await solidDocumentExists(url, options)) ? `${url}-${uuid()}` : url;
 }
 
 export async function linkFromDocument(
@@ -23,16 +23,19 @@ export async function linkFromDocument(
     webId: string,
     predicate: string,
     url: string,
-    fetch?: Fetch,
+    options: FetchOptions = {},
 ): Promise<void> {
     const update = new SparqlUpdate().insert(
         new RDFQuad(new RDFNamedNode(webId), new RDFNamedNode(expandIRI(predicate)), new RDFNamedNode(url)),
     );
 
-    await updateSolidDocument(documentUrl, update, { fetch });
+    await updateSolidDocument(documentUrl, update, options);
 }
 
-export async function findOrCreatePreferencesFile(user: CompleteSolidUserProfile, fetch?: Fetch): Promise<string> {
+export async function findOrCreatePreferencesFile(
+    user: CompleteSolidUserProfile,
+    options: FetchOptions = {},
+): Promise<string> {
     if (user.preferencesFileUrl) {
         return user.preferencesFileUrl;
     }
@@ -53,12 +56,10 @@ export async function findOrCreatePreferencesFile(user: CompleteSolidUserProfile
         );
     }
 
-    const preferencesFileUrl = await mintSettingsDocumentUrl(user, 'preferences', fetch);
+    const preferencesFileUrl = await mintSettingsDocumentUrl(user, 'preferences', options);
 
-    await createSolidDocument(preferencesFileUrl, '<> a <http://www.w3.org/ns/pim/space#ConfigurationFile> .', {
-        fetch,
-    });
-    await linkFromDocument(user.writableProfileUrl, user.webId, 'pim:preferencesFile', preferencesFileUrl, fetch);
+    await createSolidDocument(preferencesFileUrl, '<> a <http://www.w3.org/ns/pim/space#ConfigurationFile> .', options);
+    await linkFromDocument(user.writableProfileUrl, user.webId, 'pim:preferencesFile', preferencesFileUrl, options);
 
     return preferencesFileUrl;
 }

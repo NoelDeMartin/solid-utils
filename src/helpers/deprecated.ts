@@ -3,7 +3,7 @@
  * soukai-bis implements this functionality in its TypeIndex and Container models.
  */
 
-import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
+import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/authentication';
 import { linkFromDocument, mintSettingsDocumentUrl } from '@noeldemartin/solid-utils/helpers/interop';
 import { createSolidDocument, fetchSolidDocument } from '@noeldemartin/solid-utils/helpers/io';
 import type { Fetch } from '@noeldemartin/solid-utils/helpers/io';
@@ -15,7 +15,7 @@ async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexTy
         throw new Error("Can't create type index without a writable profile document");
     }
 
-    const typeIndexUrl = await mintSettingsDocumentUrl(user, `${type}TypeIndex`, fetch);
+    const typeIndexUrl = await mintSettingsDocumentUrl(user, `${type}TypeIndex`, { fetch });
     const typeIndexBody =
         type === 'public'
             ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
@@ -26,7 +26,7 @@ async function createTypeIndex(user: CompleteSolidUserProfile, type: TypeIndexTy
         `;
 
     await createSolidDocument(typeIndexUrl, typeIndexBody, { fetch });
-    await linkFromDocument(user.writableProfileUrl, user.webId, `solid:${type}TypeIndex`, typeIndexUrl, fetch);
+    await linkFromDocument(user.writableProfileUrl, user.webId, `solid:${type}TypeIndex`, typeIndexUrl, { fetch });
 
     return typeIndexUrl;
 }

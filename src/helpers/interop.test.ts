@@ -1,5 +1,5 @@
 import CloakedPreferencesFile from '@noeldemartin/solid-utils/errors/CloakedPreferencesFile';
-import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/auth';
+import type { CompleteSolidUserProfile } from '@noeldemartin/solid-utils/helpers/authentication';
 import { installVitestSolidMatchers } from '@noeldemartin/solid-utils/vitest';
 import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 import { beforeAll, describe, expect, it } from 'vite-plus/test';
@@ -39,7 +39,7 @@ describe('Interop helpers', () => {
         respondTo('PATCH', profileUrl);
 
         // Act
-        const url = await findOrCreatePreferencesFile(profile, FakeServer.fetch);
+        const url = await findOrCreatePreferencesFile(profile, { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toEqual(preferencesFileUrl);
@@ -57,7 +57,7 @@ describe('Interop helpers', () => {
         const preferencesFileUrl = `${storageUrl}settings/prefs.ttl`;
 
         // Act
-        const url = await findOrCreatePreferencesFile(user({ preferencesFileUrl }), FakeServer.fetch);
+        const url = await findOrCreatePreferencesFile(user({ preferencesFileUrl }), { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toEqual(preferencesFileUrl);
@@ -75,7 +75,7 @@ describe('Interop helpers', () => {
         );
 
         // Act
-        const url = await findOrCreatePreferencesFile(profile, FakeServer.fetch);
+        const url = await findOrCreatePreferencesFile(profile, { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toMatch(
@@ -90,7 +90,7 @@ describe('Interop helpers', () => {
         const profile = user({ cloakedDocumentUrls: [`${storageUrl}profile/extended`] });
 
         // Act
-        const promisedUrl = findOrCreatePreferencesFile(profile, FakeServer.fetch);
+        const promisedUrl = findOrCreatePreferencesFile(profile, { fetch: FakeServer.fetch });
 
         // Assert
         await expect(promisedUrl).rejects.toBeInstanceOf(CloakedPreferencesFile);
@@ -109,7 +109,7 @@ describe('Interop helpers', () => {
         respondTo('PATCH', profileUrl);
 
         // Act
-        const url = await findOrCreatePreferencesFile(profile, FakeServer.fetch);
+        const url = await findOrCreatePreferencesFile(profile, { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toEqual(preferencesFileUrl);

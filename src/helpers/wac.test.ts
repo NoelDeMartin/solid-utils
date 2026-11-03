@@ -28,7 +28,7 @@ describe('WAC helpers', () => {
         );
 
         // Act
-        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
+        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toEqual(`${documentUrl}.acl`);
@@ -69,7 +69,7 @@ describe('WAC helpers', () => {
         FakeServer.respondOnce(`${documentUrl}.acl`, FakeResponse.notFound());
 
         // Act
-        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
+        const { url, effectiveUrl, document } = await fetchSolidDocumentACL(documentUrl, { fetch: FakeServer.fetch });
 
         // Assert
         expect(url).toEqual(`${documentUrl}.acl`);
@@ -103,7 +103,7 @@ describe('WAC helpers', () => {
         );
 
         // Act
-        const promisedDocument = fetchSolidDocumentACL(documentUrl, FakeServer.fetch);
+        const promisedDocument = fetchSolidDocumentACL(documentUrl, { fetch: FakeServer.fetch });
 
         // Assert
         await expect(promisedDocument).rejects.toBeInstanceOf(UnsupportedAuthorizationProtocol);

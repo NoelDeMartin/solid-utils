@@ -89,8 +89,11 @@ function removeDuplicates(update: SparqlUpdate): void {
     }
 }
 
-export interface FetchSolidDocumentOptions {
+export interface FetchOptions {
     fetch?: Fetch;
+}
+
+export interface FetchSolidDocumentOptions extends FetchOptions {
     cache?: RequestCache;
     headers?: Record<string, string>;
     base?: string;

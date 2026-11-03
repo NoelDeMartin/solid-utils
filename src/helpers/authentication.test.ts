@@ -3,10 +3,10 @@ import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vite-plus/test';
 
 import type SolidStore from '../models/SolidStore';
-import { fetchLoginUserProfile } from './auth';
-import type { SolidUserProfile, ShallowSolidUserProfile, CompleteSolidUserProfile } from './auth';
+import { fetchLoginUserProfile } from './authentication';
+import type { SolidUserProfile, ShallowSolidUserProfile, CompleteSolidUserProfile } from './authentication';
 
-describe('Auth helpers', () => {
+describe('Authentication helpers', () => {
     const prefixes = `
         @prefix foaf: <http://xmlns.com/foaf/0.1/>.
         @prefix owl: <http://www.w3.org/2002/07/owl#>.

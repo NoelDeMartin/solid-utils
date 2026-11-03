@@ -14,31 +14,7 @@ import Unauthorized from '../errors/Unauthorized';
 import type SolidDocument from '../models/SolidDocument';
 import SolidStore from '../models/SolidStore';
 import { fetchSolidDocument } from './io';
-import type { Fetch, FetchSolidDocumentOptions } from './io';
-
-export interface SolidUserProfileBase {
-    webId: string;
-    writableProfileUrl: string | null;
-    cloakedDocumentUrls: string[];
-    name?: string;
-    avatarUrl?: string;
-    oidcIssuerUrl?: string;
-    preferencesFileUrl?: string;
-    publicTypeIndexUrls: string[];
-    privateTypeIndexUrls: string[];
-}
-
-export interface CompleteSolidUserProfile extends SolidUserProfileBase {
-    shallow: false;
-    storageUrls: [string, ...string[]];
-}
-
-export interface ShallowSolidUserProfile extends SolidUserProfileBase {
-    shallow: true;
-    storageUrls: string[];
-}
-
-export type SolidUserProfile = CompleteSolidUserProfile | ShallowSolidUserProfile;
+import type { FetchOptions, FetchSolidDocumentOptions } from './io';
 
 async function fetchExtendedUserProfile(
     webId: string,
@@ -202,8 +178,29 @@ async function discoverStorageUrl(
     return discoverStorageUrl(urlParentDirectory(parentUrl), requestOptions);
 }
 
-export interface FetchUserProfileOptions {
-    fetch?: Fetch;
+export interface SolidUserProfileBase {
+    webId: string;
+    writableProfileUrl: string | null;
+    cloakedDocumentUrls: string[];
+    name?: string;
+    avatarUrl?: string;
+    oidcIssuerUrl?: string;
+    preferencesFileUrl?: string;
+    publicTypeIndexUrls: string[];
+    privateTypeIndexUrls: string[];
+}
+
+export interface CompleteSolidUserProfile extends SolidUserProfileBase {
+    shallow: false;
+    storageUrls: [string, ...string[]];
+}
+
+export interface ShallowSolidUserProfile extends SolidUserProfileBase {
+    shallow: true;
+    storageUrls: string[];
+}
+
+export interface FetchUserProfileOptions extends FetchOptions {
     shallow?: boolean;
     maxDepth?: number;
     onLoaded?(store: SolidStore): unknown;
@@ -212,6 +209,8 @@ export interface FetchUserProfileOptions {
 export interface FetchLoginUserProfileOptions extends FetchUserProfileOptions {
     required?: boolean;
 }
+
+export type SolidUserProfile = CompleteSolidUserProfile | ShallowSolidUserProfile;
 
 export type FetchLoginUserProfileOptionsShallow = { shallow: true };
 export type FetchLoginUserProfileOptionsNotShallow = { shallow?: false };

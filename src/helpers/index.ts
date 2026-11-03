@@ -1,4 +1,6 @@
-export * from './auth';
+export * from './acp';
+export * from './authentication';
+export * from './authorization';
 export * from './deprecated';
 export * from './identifiers';
 export * from './interop';
