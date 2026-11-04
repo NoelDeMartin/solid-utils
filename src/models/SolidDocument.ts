@@ -1,5 +1,6 @@
+import { getLinkHeaderUrl, getLinkHeaderUrls } from '@noeldemartin/solid-utils/helpers/links';
 import { expandIRI } from '@noeldemartin/solid-utils/helpers/vocabs';
-import { arrayFilter, parseDate, stringMatch, urlResolve } from '@noeldemartin/utils';
+import { arrayFilter, parseDate, stringMatch } from '@noeldemartin/utils';
 import type { Quad } from '@rdfjs/types';
 
 import SolidStore from './SolidStore';
@@ -25,9 +26,7 @@ export default class SolidDocument extends SolidStore {
     }
 
     public isACPResource(): boolean {
-        return !!this.headers
-            .get('Link')
-            ?.match(/<http:\/\/www\.w3\.org\/ns\/solid\/acp#AccessControlResource>;[^,]*rel="type"/);
+        return getLinkHeaderUrls(this.headers, 'type').includes('http://www.w3.org/ns/solid/acp#AccessControlResource');
     }
 
     public isPersonalProfile(): boolean {
@@ -35,7 +34,7 @@ export default class SolidDocument extends SolidStore {
     }
 
     public isStorage(): boolean {
-        return !!this.headers.get('Link')?.match(/<http:\/\/www\.w3\.org\/ns\/pim\/space#Storage>;[^,]+rel="type"/);
+        return getLinkHeaderUrls(this.headers, 'type').includes('http://www.w3.org/ns/pim/space#Storage');
     }
 
     public isUserWritable(): boolean {
@@ -59,13 +58,7 @@ export default class SolidDocument extends SolidStore {
     }
 
     public getDescriptionUrl(): string {
-        if (!this.headers?.has('Link')) {
-            return `${this.url}.meta`;
-        }
-
-        const matches = this.headers.get('Link')?.match(/<([^>]+)>;\s*rel="describedBy"/i);
-
-        return matches ? urlResolve(this.url, matches[1] as string) : `${this.url}.meta`;
+        return getLinkHeaderUrl(this.headers, 'describedBy', { baseUrl: this.url }) ?? `${this.url}.meta`;
     }
 
     protected expandIRI(iri: string): string {

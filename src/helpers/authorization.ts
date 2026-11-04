@@ -3,7 +3,7 @@ import NotFound from '@noeldemartin/solid-utils/errors/NotFound';
 import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/UnsuccessfulNetworkRequest';
 import { globalFetch } from '@noeldemartin/solid-utils/helpers/io';
 import type { FetchOptions } from '@noeldemartin/solid-utils/helpers/io';
-import { requireUrlParentDirectory, urlResolve } from '@noeldemartin/utils';
+import { getLinkHeaderUrl } from '@noeldemartin/solid-utils/helpers/links';
 
 export async function fetchSolidDocumentAuthorizationUrl(
     documentUrl: string,
@@ -11,16 +11,13 @@ export async function fetchSolidDocumentAuthorizationUrl(
 ): Promise<string> {
     const fetch = options.fetch ?? globalFetch;
     const documentHead = await fetch(documentUrl, { method: 'HEAD' });
-    const linkHeader = documentHead.headers.get('Link') ?? '';
-    const url = linkHeader.match(/<([^>]+)>;\s*rel="acl"/)?.[1] ?? null;
+    const url = getLinkHeaderUrl(documentHead.headers, 'acl', { baseUrl: documentUrl });
 
     if (!url) {
         throw new Error(`Could not find ACL Resource for '${documentUrl}'`);
     }
 
-    const directoryUrl = documentUrl.endsWith('/') ? documentUrl : requireUrlParentDirectory(documentUrl);
-
-    return urlResolve(directoryUrl, url);
+    return url;
 }
 
 export async function canReadSolidDocument(url: string, options: FetchOptions = {}): Promise<boolean> {
