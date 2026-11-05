@@ -1,6 +1,7 @@
 import {
     createSolidContainer,
     createSolidDocument,
+    createSolidDocumentInContainer,
     deleteSolidDocument,
     fetchSolidDocument,
     fetchSolidDocumentIfFound,
@@ -8,6 +9,7 @@ import {
     updateSolidDocument,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type {
+    CreateSolidDocumentInContainerOptions,
     CreateSolidDocumentOptions,
     Fetch,
     FetchSolidDocumentOptions,
@@ -36,6 +38,14 @@ export default class SolidClient {
         return url.endsWith('/')
             ? createSolidContainer(url, body, computedOptions)
             : createSolidDocument(url, body, computedOptions);
+    }
+
+    public createInContainer(
+        containerUrl: string,
+        body: string | Quad[],
+        options?: Omit<CreateSolidDocumentInContainerOptions, keyof SolidClientOptions>,
+    ): Promise<SolidDocument> {
+        return createSolidDocumentInContainer(containerUrl, body, { ...options, ...this.options });
     }
 
     public exists(url: string): Promise<boolean> {

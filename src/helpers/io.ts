@@ -103,6 +103,10 @@ export interface CreateSolidDocumentOptions extends FetchSolidDocumentOptions {
     method?: 'PATCH' | 'PUT';
 }
 
+export interface CreateSolidDocumentInContainerOptions extends FetchSolidDocumentOptions {
+    slug?: string;
+}
+
 export interface SolidResponse {
     headers: Headers;
 }
@@ -160,6 +164,39 @@ export async function createSolidDocument(
     assertSuccessfulResponse(response, `Error creating document at ${url}`);
 
     return new SolidDocument(url, quads, response.headers);
+}
+
+export async function createSolidDocumentInContainer(
+    containerUrl: string,
+    body: string | Quad[],
+    options?: CreateSolidDocumentInContainerOptions,
+): Promise<SolidDocument> {
+    const fetch = options?.fetch ?? globalFetch;
+    const turtle = typeof body === 'string' ? body : quadsToTurtle(body);
+    const relativeBody = options?.base ? relativeTurtle(options.base, turtle) : turtle;
+    const headers: Record<string, string> = { ...options?.headers, 'Content-Type': 'text/turtle' };
+
+    if (options?.slug) {
+        headers.Slug = options.slug;
+    }
+
+    const response = await fetch(containerUrl, { method: 'POST', headers, body: relativeBody });
+
+    assertSuccessfulResponse(response, `Error creating document in ${containerUrl}`);
+
+    const location = response.headers.get('Location');
+
+    if (!location) {
+        throw new UnsuccessfulNetworkRequest(`Missing location of the document created in ${containerUrl}`, response);
+    }
+
+    const documentUrl = new URL(location, containerUrl).href;
+
+    return new SolidDocument(
+        documentUrl,
+        await turtleToQuads(relativeBody, { baseIRI: documentUrl }),
+        response.headers,
+    );
 }
 
 export async function fetchSolidDocument(url: string, options?: FetchSolidDocumentOptions): Promise<SolidDocument> {
