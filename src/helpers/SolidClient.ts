@@ -5,15 +5,22 @@ import {
     deleteSolidDocument,
     fetchSolidDocument,
     fetchSolidDocumentIfFound,
+    fetchSolidFile,
     solidDocumentExists,
     updateSolidDocument,
+    uploadSolidFile,
+    uploadSolidFileInContainer,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type {
     CreateSolidDocumentInContainerOptions,
     CreateSolidDocumentOptions,
     Fetch,
     FetchSolidDocumentOptions,
+    FetchSolidResourceOptions,
+    SolidFileResponse,
     SolidResponse,
+    UploadSolidFileInContainerOptions,
+    UploadSolidFileOptions,
 } from '@noeldemartin/solid-utils/helpers/io';
 import type { SolidDocument } from '@noeldemartin/solid-utils/models';
 import type SparqlUpdate from '@noeldemartin/solid-utils/rdf/SparqlUpdate';
@@ -91,5 +98,34 @@ export default class SolidClient {
 
     public delete(url: string): Promise<SolidResponse> {
         return deleteSolidDocument(url, this.options);
+    }
+
+    public uploadFile(
+        url: string,
+        file: Blob,
+        options?: Omit<UploadSolidFileOptions, keyof SolidClientOptions>,
+    ): Promise<SolidResponse> {
+        return uploadSolidFile(url, file, { ...this.options, ...options });
+    }
+
+    public uploadFileInContainer(
+        containerUrl: string,
+        file: Blob,
+        options?: Omit<UploadSolidFileInContainerOptions, keyof SolidClientOptions>,
+    ): Promise<SolidFileResponse> {
+        return uploadSolidFileInContainer(containerUrl, file, { ...this.options, ...options });
+    }
+
+    public readFile(url: string, options?: Pick<FetchSolidResourceOptions, 'cache' | 'headers'>): Promise<Blob> {
+        const headers = {
+            ...this.options.headers,
+            ...options?.headers,
+        };
+
+        return fetchSolidFile(url, {
+            ...this.options,
+            ...options,
+            headers,
+        });
     }
 }

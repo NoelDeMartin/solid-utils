@@ -27,15 +27,18 @@ function assertSuccessfulResponse(response: Response, errorMessage: string): voi
     throw new UnsuccessfulNetworkRequest(errorMessage, response);
 }
 
-async function fetchRawSolidDocument(
+async function fetchSolidResource(
     url: string,
-    options?: FetchSolidDocumentOptions,
-): Promise<{ body: string; headers: Headers }> {
+    options?: FetchSolidResourceOptions,
+    accept?: string,
+): Promise<Response> {
     const requestOptions: RequestInit = {
-        headers: {
-            ...options?.headers,
-            Accept: 'text/turtle',
-        },
+        headers: accept
+            ? {
+                  ...options?.headers,
+                  Accept: accept,
+              }
+            : options?.headers,
     };
 
     if (options?.cache) {
@@ -54,21 +57,29 @@ async function fetchRawSolidDocument(
             throw new Unauthorized(url, response.status);
         }
 
-        assertSuccessfulResponse(response, `Error fetching document at ${url}`);
+        assertSuccessfulResponse(response, `Error fetching resource at ${url}`);
 
-        const body = await response.text();
-
-        return {
-            body,
-            headers: response.headers,
-        };
+        return response;
     } catch (error) {
-        if (error instanceof Unauthorized) throw error;
-
-        if (error instanceof NotFound) throw error;
+        if (error instanceof Unauthorized || error instanceof NotFound) {
+            throw error;
+        }
 
         throw new NetworkRequestFailed(url, { cause: error });
     }
+}
+
+async function fetchRawSolidDocument(
+    url: string,
+    options?: FetchSolidDocumentOptions,
+): Promise<{ body: string; headers: Headers }> {
+    const response = await fetchSolidResource(url, options, 'text/turtle');
+    const body = await response.text();
+
+    return {
+        body,
+        headers: response.headers,
+    };
 }
 
 function removeDuplicates(update: SparqlUpdate): void {
@@ -93,9 +104,12 @@ export interface FetchOptions {
     fetch?: Fetch;
 }
 
-export interface FetchSolidDocumentOptions extends FetchOptions {
+export interface FetchSolidResourceOptions extends FetchOptions {
     cache?: RequestCache;
     headers?: Record<string, string>;
+}
+
+export interface FetchSolidDocumentOptions extends FetchSolidResourceOptions {
     base?: string;
 }
 
@@ -109,6 +123,22 @@ export interface CreateSolidDocumentInContainerOptions extends FetchSolidDocumen
 
 export interface SolidResponse {
     headers: Headers;
+}
+
+export interface SolidFileResponse extends SolidResponse {
+    url: string;
+}
+
+export interface UploadSolidFileOptions extends FetchOptions {
+    headers?: Record<string, string>;
+    contentType?: string;
+    overwrite?: boolean;
+}
+
+export interface UploadSolidFileInContainerOptions extends FetchOptions {
+    headers?: Record<string, string>;
+    contentType?: string;
+    slug?: string;
 }
 
 export async function createSolidContainer(
@@ -177,7 +207,7 @@ export async function createSolidDocumentInContainer(
     const headers: Record<string, string> = { ...options?.headers, 'Content-Type': 'text/turtle' };
 
     if (options?.slug) {
-        headers.Slug = options.slug;
+        headers.Slug = encodeURIComponent(options.slug);
     }
 
     const response = await fetch(containerUrl, { method: 'POST', headers, body: relativeBody });
@@ -274,4 +304,72 @@ export async function deleteSolidDocument(url: string, options?: FetchSolidDocum
     assertSuccessfulResponse(response, `Error deleting document at ${url}`);
 
     return { headers: response.headers };
+}
+
+export async function uploadSolidFile(
+    url: string,
+    file: Blob,
+    options?: UploadSolidFileOptions,
+): Promise<SolidResponse> {
+    const fetch = options?.fetch ?? globalFetch;
+    const headers: Record<string, string> = {
+        ...options?.headers,
+        'Content-Type': options?.contentType ?? (file.type || 'application/octet-stream'),
+    };
+
+    if (options?.overwrite === false) {
+        headers['If-None-Match'] = '*';
+    }
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: file,
+    });
+
+    assertSuccessfulResponse(response, `Error uploading file at ${url}`);
+
+    return { headers: response.headers };
+}
+
+export async function uploadSolidFileInContainer(
+    containerUrl: string,
+    file: Blob,
+    options?: UploadSolidFileInContainerOptions,
+): Promise<SolidFileResponse> {
+    const fetch = options?.fetch ?? globalFetch;
+    const headers: Record<string, string> = {
+        ...options?.headers,
+        'Content-Type': options?.contentType ?? (file.type || 'application/octet-stream'),
+    };
+    const slug = options?.slug ?? (typeof File !== 'undefined' && file instanceof File ? file.name : undefined);
+
+    if (slug) {
+        headers.Slug = encodeURIComponent(slug);
+    }
+
+    const response = await fetch(containerUrl, {
+        method: 'POST',
+        headers,
+        body: file,
+    });
+
+    assertSuccessfulResponse(response, `Error uploading file in ${containerUrl}`);
+
+    const location = response.headers.get('Location');
+
+    if (!location) {
+        throw new UnsuccessfulNetworkRequest(`Missing location of the file uploaded in ${containerUrl}`, response);
+    }
+
+    return {
+        url: new URL(location, containerUrl).href,
+        headers: response.headers,
+    };
+}
+
+export async function fetchSolidFile(url: string, options?: FetchSolidResourceOptions): Promise<Blob> {
+    const response = await fetchSolidResource(url, options);
+
+    return response.blob();
 }
