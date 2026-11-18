@@ -16,7 +16,7 @@ function compareLiterals(this: Literal, other: Term | null | undefined): boolean
     return (
         this.termType === other?.termType &&
         this.value === other.value &&
-        (this.language ?? '') === (other.language ?? '') &&
+        this.language === other.language &&
         this.datatype.equals(other.datatype)
     );
 }
@@ -40,6 +40,7 @@ function patchTermEquals(term: NamedNode | Literal | BlankNode | Quad | Variable
             term.equals = compareNamedNodes;
             break;
         case 'Literal':
+            term.language ??= '';
             term.equals = compareLiterals;
             term.datatype.equals = compareNamedNodes;
             break;

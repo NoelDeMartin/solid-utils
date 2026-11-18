@@ -12,6 +12,35 @@ import {
 } from './rdf';
 
 describe('RDF', () => {
+    it('parses jsonld literals conforming with rdfjs', async () => {
+        // Arrange
+        const jsonld = {
+            '@id': 'https://example.com/movie',
+            'https://schema.org/name': 'Spirited Away',
+            'https://schema.org/alternateName': { '@value': '千と千尋の神隠し', '@language': 'ja' },
+        };
+
+        // Act
+        const quads = await jsonldToQuads(jsonld);
+
+        // Assert
+        const name = quads.find((quad) => quad.predicate.value === 'https://schema.org/name')?.object;
+        const alternateName = quads.find((quad) => quad.predicate.value === 'https://schema.org/alternateName')?.object;
+        const expectedName = new RDFLiteral('Spirited Away');
+
+        expect(name?.termType === 'Literal' && name.language).toBe('');
+        expect(alternateName?.termType === 'Literal' && alternateName.language).toBe('ja');
+        expect(expectedName.equals(name)).toBe(true);
+        expect(name?.equals(expectedName)).toBe(true);
+        expect(
+            new RDFLiteral(
+                '千と千尋の神隠し',
+                'ja',
+                new RDFNamedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'),
+            ).equals(alternateName),
+        ).toBe(true);
+    });
+
     it('parses jsonld', async () => {
         // Arrange
         const jsonld = {
