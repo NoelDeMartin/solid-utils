@@ -96,16 +96,26 @@ export default class SolidClient {
         return updateSolidDocument(url, update, { ...this.options, ...options });
     }
 
-    public delete(url: string): Promise<SolidResponse> {
-        return deleteSolidDocument(url, this.options);
+    public delete(url: string, options?: Pick<FetchSolidDocumentOptions, 'headers'>): Promise<SolidResponse> {
+        const headers = {
+            ...this.options.headers,
+            ...options?.headers,
+        };
+
+        return deleteSolidDocument(url, { ...this.options, headers });
     }
 
     public uploadFile(
         url: string,
         file: Blob,
-        options?: Omit<UploadSolidFileOptions, keyof SolidClientOptions>,
+        options?: Omit<UploadSolidFileOptions, 'fetch'>,
     ): Promise<SolidResponse> {
-        return uploadSolidFile(url, file, { ...this.options, ...options });
+        const headers = {
+            ...this.options.headers,
+            ...options?.headers,
+        };
+
+        return uploadSolidFile(url, file, { ...this.options, ...options, headers });
     }
 
     public uploadFileInContainer(
