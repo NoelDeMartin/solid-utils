@@ -4,9 +4,39 @@ import UnsuccessfulNetworkRequest from '@noeldemartin/solid-utils/errors/Unsucce
 import { FakeResponse, FakeServer } from '@noeldemartin/testing';
 import { describe, expect, it } from 'vite-plus/test';
 
-import { createSolidDocumentInContainer, fetchSolidFile, uploadSolidFile, uploadSolidFileInContainer } from './io';
+import {
+    createSolidContainer,
+    createSolidDocumentInContainer,
+    fetchSolidFile,
+    uploadSolidFile,
+    uploadSolidFileInContainer,
+} from './io';
 
 describe('IO helpers', () => {
+    it('creates containers with Content-Type and Link headers', async () => {
+        // Arrange
+        const containerUrl = 'https://bob.example/cookbook/';
+
+        FakeServer.respondOnce(containerUrl, FakeResponse.created());
+        FakeServer.respondOnce(`${containerUrl}.meta`, FakeResponse.success());
+
+        // Act
+        await createSolidContainer(containerUrl, '<> <http://www.w3.org/2000/01/rdf-schema#label> "Cookbook" .', {
+            fetch: FakeServer.fetch,
+        });
+
+        // Assert
+        const request = FakeServer.getRequest('PUT', containerUrl);
+
+        expect(request?.headers).toEqual(
+            expect.objectContaining({
+                'Content-Type': 'text/turtle',
+                'If-None-Match': '*',
+                Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+            }),
+        );
+    });
+
     it('creates documents in containers', async () => {
         // Arrange
         const containerUrl = 'https://bob.example/inbox/';

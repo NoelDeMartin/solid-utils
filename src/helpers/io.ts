@@ -148,7 +148,11 @@ export async function createSolidContainer(
 ): Promise<SolidDocument> {
     const document = await createSolidDocument(url, '', {
         ...options,
-        headers: { ...options?.headers, Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' },
+        headers: {
+            ...options?.headers,
+            'Content-Type': 'text/turtle',
+            Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+        },
     });
 
     const quads = typeof body === 'string' ? await turtleToQuads(body) : body;
